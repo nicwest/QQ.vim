@@ -17,6 +17,14 @@ function! StripName(input_string)
   return substitute(a:input_string, '^:\(.\{-}\):$', '\1', '')
 endfunction
 
+function! Truthy(input_string)
+  if "\(1\|yes\|true\)" =~ input_string
+    return 1
+  else
+    return 0
+  endif
+endfunction
+
 function! s:QQ_request_syntax() abort
   let b:current_syntax = "QQ"
   syn match QQArg "^[a-zA-Z-]\+:"
@@ -88,7 +96,7 @@ endfunction
 function! s:prefill_buffer(...) abort
   if !exists("s:last_request")  
     let s:last_request = {
-          \ "URL": ["http://api.example.com/:testparam:/"], 
+          \ "URL": ["http://localhost:8000"], 
           \ "METHOD": ["GET"], 
           \ "URL-PARAM": [["testparam", "users"]], 
           \ "HEADER": [["Cache-Control", "no-cache"]], 
@@ -120,6 +128,11 @@ function! s:exec_curl(request_buffer) abort
   setlocal noswapfile
   let curl_str=g:QQ_curl_executable . " -si "
   let url=request["URL"][0]
+  for option in get(request, "OPTION", [])
+    if and(option[0] == "follow", Truthy(option[1]))
+      let curl_str.=" -L"
+    endif
+  endfor
   for header in get(request, "HEADER", [])
     let curl_str.=" -H \"".header[0].": ".header[1]."\""
   endfor
@@ -130,8 +143,9 @@ function! s:exec_curl(request_buffer) abort
   let b:response = system(curl_str)
   "this need exposed functions to work
   nnoremap <buffer> QH :call QQ#toggle_headers(bufnr(""))<CR>
-  call s:save_query(curl_str)
+  "call s:save_query(curl_str)
   call s:show_response_body(bufnr(""))
+  echo curl_str
 endfunction
 
 "save query
@@ -175,7 +189,7 @@ function! s:show_response_body(response_buffer, ...) abort
   if header == ""
     call append(0, "--NO RESPONSE--")
   elseif body ==""
-    call append(0, "--VIEW HEADERS (|h)--")
+    call append(0, "--VIEW HEADERS (QH)--")
   else
     call append(0, split(body, "\r\n"))
   endif
@@ -186,6 +200,7 @@ function! s:show_response_headers(response_buffer, ...) abort
   call setbufvar(a:response_buffer, "headers_toggled", 1)
   normal! gg"_dG
   set ft=QQ
+  call s:QQ_request_syntax()
   let split_response = s:split_response(a:response_buffer)
   let header= split_response[0]
   let body= split_response[1]
