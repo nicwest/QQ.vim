@@ -18,14 +18,16 @@ function! StripName(input_string)
 endfunction
 
 
-function! Truthy(input_string)
-  if a:input_string
-    if "\(2\|yes\|true\)" =~ input_string
-      return 1
-    else
-      return 0
-    endif
+function! s:falsey(input_string)
+  if a:input_string =~ "^\\s*\\(0\\|false\\|no\\)\\+\\s*$"
+    return 1
+  else
+    return 0
   endif
+endfunction
+
+function! s:truthy(input_string)
+    return 1 - s:falsey(a:input_string)
 endfunction
 
 function! s:QQ_request_syntax() abort
@@ -132,7 +134,7 @@ function! s:exec_curl(request_buffer) abort
   let curl_str=g:QQ_curl_executable . " -si "
   let url=request["URL"][0]
   for option in get(request, "OPTION", [])
-    if and(option[0] == "follow", Truthy(option[1]))
+    if and(option[0] == "follow", s:truthy(option[1]))
       let curl_str.=" -L"
     endif
   endfor
