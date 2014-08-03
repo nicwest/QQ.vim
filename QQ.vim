@@ -17,11 +17,14 @@ function! StripName(input_string)
   return substitute(a:input_string, '^:\(.\{-}\):$', '\1', '')
 endfunction
 
+
 function! Truthy(input_string)
-  if "\(1\|yes\|true\)" =~ input_string
-    return 1
-  else
-    return 0
+  if a:input_string
+    if "\(2\|yes\|true\)" =~ input_string
+      return 1
+    else
+      return 0
+    endif
   endif
 endfunction
 
@@ -143,26 +146,28 @@ function! s:exec_curl(request_buffer) abort
   let b:response = system(curl_str)
   "this need exposed functions to work
   nnoremap <buffer> QH :call QQ#toggle_headers(bufnr(""))<CR>
-  "call s:save_query(curl_str)
+  call s:save_query(curl_str)
   call s:show_response_body(bufnr(""))
-  echo curl_str
+  "echo curl_str
 endfunction
 
 "save query
 function! s:save_query (query) abort
-  if filereadable("~/.QQ.vim.history")
+  let filename=resolve(expand("~/.QQ.vim.history"))
+  if filereadable(filename)
     "fuck windows for the moment
     "also this should probably be a var
     "if fact all of this should be vars
-    let contents=system('cat ~/.qq.vim.history')
+    let contents=system('cat '.filename)
   else
+    call system('touch '.filename)
     let contents=""
   endif
   let queries=split(contents, "\\r\\n")
   let in_previous_queries = index(queries, a:query)
   if in_previous_queries < 0
     call add(queries, a:query)
-    call writefile(queries, "~/QQ.vim.history")
+    call writefile(readfile(filename)+queries, filename)
   endif
 endfunction
 
