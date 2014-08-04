@@ -11,13 +11,18 @@ if !exists('g:QQ_curl_executable')
   let g:QQ_curl_executable = 'curl'
 endif
 
+"this matches "{option}: [:{key}:] {value}"
 let s:request_line_ptrn = "^\\([A-Z-]\\+\\):\\s\\+\\(:[^:/]\\+:\\)\\?\\s*\\(.*\\)$"
 
+"turns ":{key}:" into "{key}"
 function! StripName(input_string)
   return substitute(a:input_string, '^:\(.\{-}\):$', '\1', '')
 endfunction
 
-
+"if string is 0, false, or no it is falsey (normally this would include nil
+"values or empty stings, but for the moment I think these will be synonymous
+"with setting true in the context of "OPTION: :{key}: {value}", might change
+"this later)
 function! s:falsey(input_string)
   if a:input_string =~ "^\\s*\\(0\\|false\\|no\\)\\+\\s*$"
     return 1
@@ -26,6 +31,7 @@ function! s:falsey(input_string)
   endif
 endfunction
 
+"if it's not falsey then it's truthy
 function! s:truthy(input_string)
     return 1 - s:falsey(a:input_string)
 endfunction
@@ -69,6 +75,7 @@ function! QQ#open_window(...) abort
   call s:open_window(a:000)
 endfunction
 
+"converts buffer to request array and executes it
 function! QQ#send_request(...) abort
   call s:convert_buffer(bufnr(""))
   call s:exec_curl(bufnr(""))
@@ -146,37 +153,34 @@ function! s:exec_curl(request_buffer) abort
   endfor
   let curl_str.= " ".url
   let b:response = system(curl_str)
-  "this need exposed functions to work
   nnoremap <buffer> QH :call QQ#toggle_headers(bufnr(""))<CR>
   call s:save_query(curl_str)
   call s:show_response_body(bufnr(""))
-  "echo curl_str
 endfunction
 
 "save query
 function! s:save_query (query) abort
   let filename=resolve(expand("~/.QQ.vim.history"))
   if filereadable(filename)
-    "fuck windows for the moment
-    "also this should probably be a var
-    "if fact all of this should be vars
+    "TODO: needs to be cross platform, does windows have cat?
     let contents=system('cat '.filename)
   else
+    "TODO: needs to be cross platform, does windows have touch?
     call system('touch '.filename)
     let contents=""
   endif
-  let queries=split(contents, "\\r\\n")
+  let queries=split(contents, "\\n")
   let in_previous_queries = index(queries, a:query)
   if in_previous_queries < 0
     call add(queries, a:query)
-    call writefile(readfile(filename)+queries, filename)
+    call writefile(queries, filename)
   endif
 endfunction
 
 "process the response
 function! s:split_response(response_buffer, ...) abort
   let response=getbufvar(a:response_buffer, 'response')
-  let split_response=split(response, "\\r\\n\\r\\n")
+  let split_response=split(response, "\\(\\r\\n\\r\\n\\|\\n\\n\\)")
   if len(split_response) > 1
     return [split_response[0], join(split_response[1:], "\r\n\r\n")]
   elseif len(split_response)
@@ -186,6 +190,7 @@ function! s:split_response(response_buffer, ...) abort
   endif
 endfunction
 
+"shows response body in current buffer
 function! s:show_response_body(response_buffer, ...) abort
   call setbufvar(a:response_buffer, "headers_toggled", 0)
   normal! gg"_dG
@@ -203,6 +208,7 @@ function! s:show_response_body(response_buffer, ...) abort
   normal! gg
 endfunction
 
+"shows response headers in current buffer
 function! s:show_response_headers(response_buffer, ...) abort
   call setbufvar(a:response_buffer, "headers_toggled", 1)
   normal! gg"_dG
@@ -219,6 +225,7 @@ function! s:show_response_headers(response_buffer, ...) abort
   normal! gg
 endfunction
 
+"toggle headers of response in current buffer
 function! QQ#toggle_headers (response_buffer, ...) abort
   if getbufvar(a:response_buffer, "headers_toggled")
     call s:show_response_body(a:response_buffer)
