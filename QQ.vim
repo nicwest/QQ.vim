@@ -182,14 +182,14 @@ endfunction
 "process the response
 function! s:split_response(response_buffer, ...) abort
   let response=getbufvar(a:response_buffer, 'response')
-  let split_response=split(response, "\\(\\r\\n\\r\\n\\|\\n\\n\\)")
+  let split_response = split(response, "\\r\\n\\r\\n\\(\\([A-Z]\\+\\/[0-9\\.]".
+  \ "\\+\\s\\+[0-9]\\+\\s\\+[A-Z]\\+\\)\\@!\\)")
   if len(split_response) > 1
-    return [split_response[0], join(split_response[1:], "\r\n\r\n")]
+    return [split_response[0], split_response[1]]
   elseif len(split_response)
     return [split_response[0], ""]
   else
     return ["", ""]
-  endif
 endfunction
 
 "shows response body in current buffer
