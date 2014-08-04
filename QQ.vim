@@ -127,7 +127,9 @@ function! s:prefill_buffer(...) abort
       unlet attr
     endfor
   endfor
+  normal! gg"_dG
   call append(0, prefill)
+  normal! gg
 endfunction
 
 "execute curl
