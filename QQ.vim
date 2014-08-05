@@ -43,9 +43,22 @@ function! s:QQ_request_syntax() abort
   syn match QQUrl "\S\+:\/\/\S\+" contains=QQUrlParam
   syn match QQArgParam "^[a-zA-Z-]\+:\s\+:[^/:]\+:" contains=QQArg,QQUrlParam
   syn keyword QQMethods GET POST PUT DELETE
+  syn keyword QQResponseInformational 100 101
+  syn keyword QQResponseSuccess 200 201 202 203 204 205 206
+  syn keyword QQResponseRedirection 300 301 302 303 304 305 306 307
+  syn keyword QQResponseClientError 400 401 402 403 404 405 406 407 408 409 410 411 412 413 414 415 416 417
+  syn keyword QQResponseServerError 500 501 502 503 504 505 506
+  syn region QQHeaderFold start="^[A-Z]\+\/[0-9\.]\+\s\+[0-9]\+\s\+[A-Z]\+.*" end="\n\n" fold keepend contains=QQArg,QQResponseSuccess,QQResponseInformational,QQResponseRedirection,QQResponseClientError,QQResponseServerError
   hi def link QQArg Constant
   hi def link QQUrlParam String
   hi def link QQMethods Keyword
+  hi QQResponseInformational ctermbg=NONE ctermfg=7
+  hi QQResponseSuccess ctermbg=NONE ctermfg=10
+  hi QQResponseRedirection ctermbg=NONE ctermfg=14
+  hi QQResponseClientError ctermbg=NONE ctermfg=13
+  hi QQResponseServerError ctermbg=NONE ctermfg=4
+  syn sync fromstart
+  set foldmethod=syntax
 endfunction
 
 augroup QQ
@@ -155,9 +168,8 @@ function! s:exec_curl(request_buffer) abort
   endfor
   let curl_str.= " ".url
   let b:response = system(curl_str)
-  nnoremap <buffer> QH :call QQ#toggle_headers(bufnr(""))<CR>
   call s:save_query(curl_str)
-  call s:show_response_body(bufnr(""))
+  call s:show_response(bufnr(""))
 endfunction
 
 "save query
@@ -180,61 +192,19 @@ function! s:save_query (query) abort
   call writefile(queries, filename)
 endfunction
 
-"process the response
-function! s:split_response(response_buffer, ...) abort
-  let response=getbufvar(a:response_buffer, 'response')
-  let split_response = split(response, "\\r\\n\\r\\n\\(\\([A-Z]\\+\\/[0-9\\.]".
-  \ "\\+\\s\\+[0-9]\\+\\s\\+[A-Z]\\+\\)\\@!\\)")
-  if len(split_response) > 1
-    return [split_response[0], split_response[1]]
-  elseif len(split_response)
-    return [split_response[0], ""]
-  else
-    return ["", ""]
-endfunction
-
-"shows response body in current buffer
-function! s:show_response_body(response_buffer, ...) abort
-  call setbufvar(a:response_buffer, "headers_toggled", 0)
+"shows response in current buffer
+function! s:show_response(response_buffer, ...) abort
+  set ft=QQ
+  call s:QQ_request_syntax()
   normal! gg"_dG
-  set ft=json
-  let split_response = s:split_response(a:response_buffer)
-  let header= split_response[0]
-  let body= split_response[1]
-  if header == ""
+  let response=getbufvar(a:response_buffer, 'response')
+  let body=response
+  if response == ""
     call append(0, "--NO RESPONSE--")
-  elseif body ==""
-    call append(0, "--VIEW HEADERS (QH)--")
   else
     call append(0, split(body, "\r\n"))
   endif
   normal! gg
-endfunction
-
-"shows response headers in current buffer
-function! s:show_response_headers(response_buffer, ...) abort
-  call setbufvar(a:response_buffer, "headers_toggled", 1)
-  normal! gg"_dG
-  set ft=QQ
-  call s:QQ_request_syntax()
-  let split_response = s:split_response(a:response_buffer)
-  let header= split_response[0]
-  let body= split_response[1]
-  if header == ""
-    call append(0, "--NO RESPONSE--")
-  else
-    call append(0, split(header, "\r\n"))
-  endif
-  normal! gg
-endfunction
-
-"toggle headers of response in current buffer
-function! QQ#toggle_headers (response_buffer, ...) abort
-  if getbufvar(a:response_buffer, "headers_toggled")
-    call s:show_response_body(a:response_buffer)
-  else
-    call s:show_response_headers(a:response_buffer)
-  endif
 endfunction
 
 function! s:close_window(...) abort
