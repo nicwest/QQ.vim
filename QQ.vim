@@ -173,10 +173,11 @@ function! s:save_query (query) abort
   endif
   let queries=split(contents, "\\n")
   let in_previous_queries = index(queries, a:query)
-  if in_previous_queries < 0
-    call add(queries, a:query)
-    call writefile(queries, filename)
+  if in_previous_queries > 0
+    call remove(queries, in_previous_queries)
   endif
+  let queries = [a:query] + queries
+  call writefile(queries, filename)
 endfunction
 
 "process the response
