@@ -155,10 +155,15 @@ function! s:exec_curl(request_buffer) abort
   setlocal noswapfile
   let curl_str=g:QQ_curl_executable . " -si "
   let url=request["URL"][0]
+  let options=[]
   for option in get(request, "OPTION", [])
     if and(option[0] == "follow", s:truthy(option[1]))
+      call add(options, "follow")
       let curl_str.=" -L"
+    elseif and(option[0] == "pretty-print", s:truthy(option[1]))
+      call add(options, "pretty-print")
     endif
+
   endfor
   for header in get(request, "HEADER", [])
     let curl_str.=" -H \"".header[0].": ".header[1]."\""
@@ -169,7 +174,7 @@ function! s:exec_curl(request_buffer) abort
   let curl_str.= " ".url
   let b:response = system(curl_str)
   call s:save_query(curl_str)
-  call s:show_response(bufnr(""))
+  call s:show_response(bufnr(""), options)
 endfunction
 
 "save query
@@ -192,17 +197,36 @@ function! s:save_query (query) abort
   call writefile(queries, filename)
 endfunction
 
+"process the response
+function! s:split_response(response_buffer, ...) abort
+  let response=getbufvar(a:response_buffer, 'response')
+  let split_response = split(response, "\\r\\n\\r\\n\\(\\([A-Z]\\+\\/[0-9\\.]".
+  \ "\\+\\s\\+[0-9]\\+\\s\\+[A-Z]\\+\\)\\@!\\)")
+  if len(split_response) > 1
+    return [split_response[0], split_response[1]]
+  elseif len(split_response)
+    return [split_response[0], ""]
+  else
+    return ["", ""]
+  endif
+endfunction
+
 "shows response in current buffer
-function! s:show_response(response_buffer, ...) abort
+function! s:show_response(response_buffer, options, ...) abort
   set ft=QQ
   call s:QQ_request_syntax()
   normal! gg"_dG
   let response=getbufvar(a:response_buffer, 'response')
-  let body=response
   if response == ""
     call append(0, "--NO RESPONSE--")
   else
-    call append(0, split(body, "\r\n"))
+    if index(a:options, "pretty-print") > -1
+      let split_response = s:split_response(a:response_buffer)
+      let body = substitute(system("echo " . shellescape(split_response[1]) .
+      \  " | python -m json.tool"), "\\n", "\\r\\n", "g")
+      let response = split_response[0] . "\r\n\r\n" . body
+    endif
+    call append(0, split(response, "\r\n"))
   endif
   normal! gg
 endfunction
