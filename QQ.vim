@@ -37,6 +37,8 @@ function! s:truthy(input_string)
 endfunction
 
 function! s:QQ_request_syntax() abort
+  runtime! syntax/javascript.vim
+  unlet b:current_syntax
   let b:current_syntax = "QQ"
   syn match QQArg "^[a-zA-Z-]\+:"
   syn match QQUrlParam ":[^/:]\+:" contained
@@ -212,7 +214,7 @@ endfunction
 
 "shows response in current buffer
 function! s:show_response(response_buffer, options, ...) abort
-  set ft=QQ.javascript
+  set ft=QQ
   call s:QQ_request_syntax()
   normal! gg"_dG
   let response=getbufvar(a:response_buffer, 'response')
