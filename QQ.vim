@@ -212,7 +212,7 @@ endfunction
 
 "shows response in current buffer
 function! s:show_response(response_buffer, options, ...) abort
-  set ft=QQ.json
+  set ft=QQ.javascript
   call s:QQ_request_syntax()
   normal! gg"_dG
   let response=getbufvar(a:response_buffer, 'response')
