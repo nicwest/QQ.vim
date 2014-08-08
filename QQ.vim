@@ -150,7 +150,6 @@ function! s:exec_curl(request_buffer) abort
   let request=getbufvar(a:request_buffer, 'request')
   badd RESPONSE
   buffer RESPONSE
-  set ft=json
   setlocal buftype=nofile
   setlocal noswapfile
   let curl_str=g:QQ_curl_executable . " -si "
@@ -213,7 +212,7 @@ endfunction
 
 "shows response in current buffer
 function! s:show_response(response_buffer, options, ...) abort
-  set ft=QQ
+  set ft=QQ.json
   call s:QQ_request_syntax()
   normal! gg"_dG
   let response=getbufvar(a:response_buffer, 'response')
