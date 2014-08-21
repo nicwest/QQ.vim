@@ -11,6 +11,26 @@ if !exists('g:QQ_curl_executable')
   let g:QQ_curl_executable = 'curl'
 endif
 
+"default collection location
+if !exists('g:QQ_default_collection')
+  let g:QQ_default_collection = '~/.QQ.default.collection'
+endif
+
+"current collection
+if !exists('g:QQ_current_collection')
+  let g:QQ_current_collection = g:QQ_default_collection
+endif
+
+"collection window location
+if !exists('g:QQ_collection_window_location')
+  let g:QQ_collection_window_location = 'top'
+endif
+
+"collection window height
+if !exists('g:QQ_collection_window_height')
+  let g:QQ_collection_window_height = 10
+endif
+
 "this matches "{option}: [:{key}:] {value}"
 let s:request_line_ptrn = "^\\([A-Z-]\\+\\):\\s\\+\\(:[^:/]\\+:\\)\\?\\s*\\(.*\\)$"
 
@@ -41,7 +61,7 @@ function! s:QQ_request_syntax() abort
   unlet b:current_syntax
   let b:current_syntax = "QQ"
   syn match QQArg "^[a-zA-Z-]\+:"
-  syn match QQUrlParam ":[^/:]\+:" contained
+  syn match QQUrlParam ":[a-zA-Z\-_]\+:" contained
   syn match QQUrl "\S\+:\/\/\S\+" contains=QQUrlParam
   syn match QQArgParam "^[a-zA-Z-]\+:\s\+:[^/:]\+:" contains=QQArg,QQUrlParam
   syn keyword QQMethods GET POST PUT DELETE
@@ -71,29 +91,119 @@ augroup END
 
 "open a new window
 function! s:open_window(...) abort
+  call s:focus_request_buffer()
+endfunction
+
+function! s:setup_request_buffer() abort
   if exists('s:reloading_QQ')
     return
   endif
   let s:reloading_QQ = 1
-  vert new REQUEST
+  abc <buffer>
   set ft=QQ
-  setlocal buftype=nofile
-  setlocal noswapfile
+  setl noswf nonu nobl nospell nocuc wfw
+  setl fdc=0 fdl=99 tw=0 bt=nofile bh=unload
+  if v:version > 702
+    setl nornu noudf cc=0
+  end
   let s:request_buffer = bufnr("%") 
   let s:request_window = winnr()
-  call s:prefill_buffer()
   nnoremap <buffer> QQ :call QQ#send_request()<CR>
   unlet s:reloading_QQ
 endfunction
 
+function! s:focus_window_with_name(window) abort
+  exe 'norm'.bufwinnr(a:window).'w'
+endfunction
+
 function! QQ#open_window(...) abort
   call s:open_window(a:000)
+  call s:prefill_buffer()
 endfunction
 
 "converts buffer to request array and executes it
 function! QQ#send_request(...) abort
   call s:convert_buffer(bufnr(""))
   call s:exec_curl(bufnr(""))
+endfunction
+
+"opens quick fix style buffer list with current collection or default
+function! QQ#open_history() abort
+  if exists("b:current_collection")
+    call s:open_history(b:current_collection, bufnr(""))
+  else
+    call s:open_history(g:QQ_current_collection, bufnr(""))
+  endif
+endfunction
+
+"reads current collection to quickfix
+function! s:open_history(collection, buffer) abort
+  let contents=system('cat '.expand(a:collection))
+  "bluntly stolen from CTRL-P 
+  if !bufexists('HISTORY')
+    sil! exe 'keepa' ( g:QQ_collection_window_location == 'top' ? 'to' : 'bo' ) 
+              \ g:QQ_collection_window_height.'new HISTORY'
+  elseif bufwinnr('HISTORY') == -1
+    sil! exe 'keepa' ( g:QQ_collection_window_location == 'top' ? 'to' : 'bo' ) 
+              \ 'sb HISTORY'
+    sil! exe 'res 10'
+  else
+    call s:focus_window_with_name('HISTORY')
+  endif
+  abc <buffer>
+  setl ma
+  norm gg"_dG
+  setl noswf nonu nobl nowrap nolist nospell nocuc wfh
+  setl fdc=0 fdl=99 tw=0 bt=nofile bh=unload
+  if v:version > 702
+    setl nornu noudf cc=0
+  end
+  "END STEAL
+  let b:queries=split(contents, "\\n")
+  let displaylist=split(contents, "\\n")
+  call s:QQ_request_syntax()
+  call map(displaylist, 'matchstr(v:val, ''-X\s\zs.\{-}\s\ze'') .' . "	".
+              \' matchstr(v:val, ''\s\zs[a-zA-Z]\+:\/\/.\{-}\ze$'')')
+  call append(0, displaylist)
+  nnoremap <buffer> <CR> :call QQ#history_to_request()<CR>
+  norm gg
+  setl noma
+endfunction
+
+function! QQ#history_to_request()
+  let query=get(b:queries, line(".")-1, 0)
+  call s:focus_request_buffer()
+  call s:prefill_buffer(s:convert_query(query))
+endfunction
+
+function! s:focus_request_buffer()
+  if and(!bufexists('REQUEST'), !bufexists('RESPONSE'))
+    "neither request or response buffer exists
+    sil! exe 'keepa bo 80vnew REQUEST'
+  elseif and(!bufexists('REQUEST'), bufwinnr('RESPONSE') != -1)
+    "request buffer doesn't exist, response buffer exists and is in window
+    call s:focus_window_with_name('RESPONSE')
+    sil! exe 'badd REQUEST'
+    sil! exe 'buf' bufnr('') 
+  elseif and(!bufexists('REQUEST'), bufexists('RESPONSE'))
+    "request buffer doesn't exist, response buffer exists but is not in window
+    sil! exe 'keepa bo vert sb RESPONSE'
+    sil! exe 'vert res 80'
+    sil! exe 'badd REQUEST'
+    sil! exe 'buf' bufnr('') 
+  elseif and(bufwinnr('REQUEST') == -1, bufwinnr('RESPONSE') != -1)
+    "request buffer exists, response buffer exists and is in window
+    call s:focus_window_with_name('RESPONSE')
+    sil! exe 'buf' bufnr('REQUEST') 
+  elseif bufwinnr('REQUEST') == -1
+    "request buffer exists but is not in window
+    sil! exe 'keepa bo vert sb REQUEST'
+    sil! exe 'vert res 80'
+  else 
+    "request buffer exists and is in window
+    call s:focus_window_with_name('REQUEST')
+  endif
+  call s:setup_request_buffer()
 endfunction
 
 "turn buffer into list of curl varibles
@@ -119,6 +229,28 @@ function! s:convert_buffer(bufno_of_request) abort
   let b:request = request
 endfunction
 
+"turn curl query into list of curl varibles
+function! s:convert_query(query) abort
+  let request={
+        \ "URL": [],
+        \ "METHOD": [],
+        \ "URL-PARAM": [],
+        \ "HEADER": [],
+        \ "BODY": [],
+        \ "OPTION": [],
+        \}
+  call add(request['METHOD'], matchstr(a:query, '-X\s\zs.\{-}\ze\s'))
+  let headercount = 1
+  let headermatch = '-H\s\([''"]\)\zs.\{-}\ze\1'
+  while match(a:query, headermatch, 0, headercount) > 0
+    let headerpair = matchstr(a:query, headermatch, 0, headercount)
+    call add(request['HEADER'], split(headerpair, ": "))
+    let headercount += 1
+  endwhile
+  call add(request['URL'], matchstr(a:query, '\s\zs[a-zA-Z]\+:\/\/.*\ze$'))
+  return request
+endfunction
+
 "prefill buffer
 function! s:prefill_buffer(...) abort
   if !exists("s:last_request")  
@@ -131,8 +263,9 @@ function! s:prefill_buffer(...) abort
           \ "OPTION": [["pretty-print", "True"]]
           \ }
   endif
+  let request = a:0 ? a:1 : s:last_request 
   let prefill = []
-  for item in items(s:last_request)
+  for item in items(request)
     for attr in item[1]
       if type(attr) == type([])
         call add(prefill, item[0].":\t:".attr[0].": ".attr[1])
@@ -164,23 +297,23 @@ function! s:exec_curl(request_buffer) abort
     elseif and(option[0] == "pretty-print", s:truthy(option[1]))
       call add(options, "pretty-print")
     endif
-
   endfor
+  let curl_str.=" -X ".get(request, "METHOD", ["GET"])[0]
   for header in get(request, "HEADER", [])
     let curl_str.=" -H \"".header[0].": ".header[1]."\""
   endfor
+  let sub_url = url
   for param in get(request, "URL-PARAM", [])
-    let url=substitute(url, ":".param[0].":", param[1], "g")
+    let sub_url=substitute(sub_url, ":".param[0].":", param[1], "g")
   endfor
-  let curl_str.= " ".url
-  let b:response = system(curl_str)
-  call s:save_query(curl_str)
+  let b:response = system(curl_str." ".shellescape(sub_url))
+  call s:save_query(curl_str." ".url)
   call s:show_response(bufnr(""), options)
 endfunction
 
 "save query
 function! s:save_query (query) abort
-  let filename=resolve(expand("~/.QQ.vim.history"))
+  let filename=resolve(expand(g:QQ_current_collection))
   if filereadable(filename)
     "TODO: needs to be cross platform, does windows have cat?
     let contents=system('cat '.filename)
@@ -236,3 +369,4 @@ function! s:close_window(...) abort
 endfunction
 
 nnoremap QQ :call QQ#open_window()<CR>
+nnoremap QH :call QQ#open_history()<CR>
