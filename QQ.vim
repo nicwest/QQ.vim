@@ -138,8 +138,6 @@ endfunction
 
 "reads current collection to quickfix
 function! s:open_history(collection, buffer) abort
-  let contents=system('cat '.expand(a:collection))
-  "bluntly stolen from CTRL-P 
   if !bufexists('HISTORY')
     sil! exe 'keepa' ( g:QQ_collection_window_location == 'top' ? 'to' : 'bo' ) 
               \ g:QQ_collection_window_height.'new HISTORY'
@@ -151,16 +149,21 @@ function! s:open_history(collection, buffer) abort
     call s:focus_window_with_name('HISTORY')
   endif
   abc <buffer>
+  let b:queries=split(system('cat '.expand(a:collection)), "\\n")
   setl ma
-  norm gg"_dG
   setl noswf nonu nobl nowrap nolist nospell nocuc wfh
   setl fdc=0 fdl=99 tw=0 bt=nofile bh=unload
   if v:version > 702
     setl nornu noudf cc=0
   end
-  "END STEAL
-  let b:queries=split(contents, "\\n")
-  let displaylist=split(contents, "\\n")
+  call s:load_history_buffer()
+endfunction
+
+"loads history buffer from b:queries
+function! s:load_history_buffer() abort
+  setl ma
+  norm gg"_dG
+  let displaylist=copy(b:queries)
   call s:QQ_request_syntax()
   call map(displaylist, 'matchstr(v:val, ''-X\s\zs.\{-}\s\ze'') .' . "	".
               \' matchstr(v:val, ''\s\zs[a-zA-Z]\+:\/\/.\{-}\ze$'')')
@@ -328,6 +331,13 @@ function! s:save_query (query) abort
     call remove(queries, in_previous_queries)
   endif
   let queries = [a:query] + queries
+  if bufwinnr('HISTORY') != -1
+    call setbufvar(bufnr('HISTORY'), 'queries', queries)
+    let request_buffer=bufnr('')
+    call s:focus_window_with_name('HISTORY')
+    call s:load_history_buffer()
+    call s:focus_window_with_name(request_buffer)
+  endif
   call writefile(queries, filename)
 endfunction
 
