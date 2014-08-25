@@ -64,7 +64,7 @@ function! s:QQ_request_syntax() abort
   syn match QQUrlParam ":[a-zA-Z\-_]\+:" contained
   syn match QQUrl "\S\+:\/\/\S\+" contains=QQUrlParam
   syn match QQArgParam "^[a-zA-Z-]\+:\s\+:[^/:]\+:" contains=QQArg,QQUrlParam
-  syn keyword QQMethods GET POST PUT DELETE
+  syn keyword QQMethods GET POST PUT DELETE OPTIONS HEAD TRACE CONNECT PATCH
   syn keyword QQResponseInformational 100 101
   syn keyword QQResponseSuccess 200 201 202 203 204 205 206
   syn keyword QQResponseRedirection 300 301 302 303 304 305 306 307
