@@ -53,7 +53,13 @@ endfunction
 
 "if it's not falsey then it's truthy
 function! s:truthy(input_string)
-    return 1 - s:falsey(a:input_string)
+  return 1 - s:falsey(a:input_string)
+endfunction
+
+"base64 encoder stolen from vimstuff
+"TODO: implement this in vimscript like a boss
+function! s:base64encode(str) abort
+  return system("echo -n '".shellescape(a:str)."' | base64")[:-2]
 endfunction
 
 function! s:QQ_request_syntax() abort
@@ -141,10 +147,10 @@ endfunction
 function! s:open_history(collection, buffer) abort
   if !bufexists('HISTORY')
     sil! exe 'keepa' ( g:QQ_collection_window_location == 'top' ? 'to' : 'bo' ) 
-              \ g:QQ_collection_window_height.'new HISTORY'
+          \ g:QQ_collection_window_height.'new HISTORY'
   elseif bufwinnr('HISTORY') == -1
     sil! exe 'keepa' ( g:QQ_collection_window_location == 'top' ? 'to' : 'bo' ) 
-              \ 'sb HISTORY'
+          \ 'sb HISTORY'
     sil! exe 'res 10'
   else
     call s:focus_window_with_name('HISTORY')
@@ -167,19 +173,34 @@ function! s:load_history_buffer() abort
   let displaylist=copy(b:queries)
   call s:QQ_request_syntax()
   call map(displaylist, 'matchstr(v:val, ''-X\s\zs.\{-}\s\ze'') .' . "	".
-              \' matchstr(v:val, ''\s\zs[a-zA-Z]\+:\/\/.\{-}\ze$'')')
+        \' matchstr(v:val, ''\s\zs[a-zA-Z]\+:\/\/.\{-}\ze$'')')
   call append(0, displaylist)
   nnoremap <buffer> <CR> :call QQ#history_to_request()<CR>
-  norm gg
+  norm Gddgg
   setl noma
 endfunction
 
+"load current query line under cursor to REQUEST buffer
 function! QQ#history_to_request()
   let query=get(b:queries, line(".")-1, 0)
   call s:focus_request_buffer()
   call s:prefill_buffer(s:convert_query(query))
 endfunction
 
+"adds basic auth header via prompt
+function! QQ#basic_auth() abort
+  let user = input("User: ")
+  let password = inputsecret("Password: ")
+  let auth_string = s:base64encode(user.":".password)
+  call append(line("$"), ["HEADER: :Authorization: Basic ".auth_string])
+endfunction
+
+"adds option with 'option_name' to REQUEST buffer
+function! QQ#add_option(option_name) abort
+  call append(line("$"), ["OPTION: :" . a:option_name . ": true"])
+endfunction
+
+"finds the REQUEST buffer where ever it may be
 function! s:focus_request_buffer()
   if and(!bufexists('REQUEST'), !bufexists('RESPONSE'))
     "neither request or response buffer exists
@@ -207,6 +228,8 @@ function! s:focus_request_buffer()
     "request buffer exists and is in window
     call s:focus_window_with_name('REQUEST')
   endif
+  nnoremap <buffer> QBA :call QQ#basic_auth()<CR>
+  nnoremap <buffer> QP :call QQ#add_option('pretty-print')<CR>
   call s:setup_request_buffer()
 endfunction
 
@@ -248,7 +271,7 @@ function! s:convert_query(query) abort
   let headermatch = '-H\s\([''"]\)\zs.\{-}\ze\1'
   while match(a:query, headermatch, 0, headercount) > 0
     let headerpair = matchstr(a:query, headermatch, 0, headercount)
-    call add(request['HEADER'], split(headerpair, ": "))
+    call add(request['HEADER'], split(headerpair, ":"))
     let headercount += 1
   endwhile
   call add(request['URL'], matchstr(a:query, '\s\zs[a-zA-Z]\+:\/\/.*\ze$'))
@@ -281,7 +304,7 @@ function! s:prefill_buffer(...) abort
   endfor
   normal! gg"_dG
   call append(0, prefill)
-  normal! gg
+  normal! Gddgg
 endfunction
 
 "execute curl
@@ -292,13 +315,13 @@ function! s:exec_curl(request_buffer) abort
   setlocal buftype=nofile
   setlocal noswapfile
   let curl_str=g:QQ_curl_executable . " -si -w '\\r\\n".
-              \ "\%{time_namelookup}\\r\\n".
-              \ "\%{time_connect}\\r\\n".
-              \ "\%{time_appconnect}\\r\\n".
-              \ "\%{time_pretransfer}\\r\\n".
-              \ "\%{time_redirect}\\r\\n".
-              \ "\%{time_starttransfer}\\r\\n".
-              \ "\%{time_total}'"
+        \ "\%{time_namelookup}\\r\\n".
+        \ "\%{time_connect}\\r\\n".
+        \ "\%{time_appconnect}\\r\\n".
+        \ "\%{time_pretransfer}\\r\\n".
+        \ "\%{time_redirect}\\r\\n".
+        \ "\%{time_starttransfer}\\r\\n".
+        \ "\%{time_total}'"
   let url=request["URL"][0]
   let options=[]
   for option in get(request, "OPTION", [])
@@ -311,9 +334,9 @@ function! s:exec_curl(request_buffer) abort
   endfor
   let curl_str.=" -X ".get(request, "METHOD", ["GET"])[0]
   for header in get(request, "HEADER", [])
-    let curl_str.=" -H \"".header[0].": ".header[1]."\""
+    let curl_str.=" -H \"".header[0].":".header[1]."\""
   endfor
-  let sub_url = url
+  let sub_url = substitute(url, '\([{}]\)', '\\\1', "g")
   for param in get(request, "URL-PARAM", [])
     let sub_url=substitute(sub_url, ":".param[0].":", param[1], "g")
   endfor
@@ -363,7 +386,7 @@ function! s:split_response(response_buffer, ...) abort
         \ "Start-Transfer: " . times[5]
   let response = join(lines[:-8], "\r\n")
   let split_response = split(response, "\\r\\n\\r\\n\\(\\([A-Z]\\+\\/[0-9\\.]".
-  \ "\\+\\s\\+[0-9]\\+\\s\\+[A-Z]\\+\\)\\@!\\)")
+        \ "\\+\\s\\+[0-9]\\+\\s\\+[A-Z]\\+\\)\\@!\\)")
   if len(split_response) > 1
     return [split_response[0], split_response[1], timeblock]
   elseif len(split_response)
@@ -385,7 +408,7 @@ function! s:show_response(response_buffer, options, ...) abort
   else
     if index(a:options, "pretty-print") > -1
       let body = substitute(system("echo " . shellescape(split_response[1]) .
-      \  " | python -m json.tool"), "\\n", "\\r\\n", "g")
+            \  " | python -m json.tool"), "\\n", "\\r\\n", "g")
       let response = split_response[0] . "\r\n\r\n" . split_response[2] . 
             \ "\r\n\r\n" . body
     else
@@ -394,7 +417,7 @@ function! s:show_response(response_buffer, options, ...) abort
     endif
     call append(0, split(response, "\r\n"))
   endif
-  normal! gg
+  normal! Gddgg
 endfunction
 
 function! s:close_window(...) abort
