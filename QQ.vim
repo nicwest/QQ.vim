@@ -71,6 +71,7 @@ function! s:QQ_request_syntax() abort
   syn keyword QQResponseClientError 400 401 402 403 404 405 406 407 408 409 410 411 412 413 414 415 416 417
   syn keyword QQResponseServerError 500 501 502 503 504 505 506
   syn region QQHeaderFold start="^[A-Z]\+\/[0-9\.]\+\s\+[0-9]\+\s\+[A-Z]\+.*" end="\n\n" fold keepend contains=QQArg,QQResponseSuccess,QQResponseInformational,QQResponseRedirection,QQResponseClientError,QQResponseServerError
+  syn region QQResponseTimeFold start="^RESPONSE\sTIME: [0-9\.]\+$" end="\n\n" fold keepend contains=QQArg
   hi def link QQArg Constant
   hi def link QQUrlParam String
   hi def link QQMethods Keyword
@@ -290,7 +291,14 @@ function! s:exec_curl(request_buffer) abort
   buffer RESPONSE
   setlocal buftype=nofile
   setlocal noswapfile
-  let curl_str=g:QQ_curl_executable . " -si "
+  let curl_str=g:QQ_curl_executable . " -si -w '\\r\\n".
+              \ "\%{time_namelookup}\\r\\n".
+              \ "\%{time_connect}\\r\\n".
+              \ "\%{time_appconnect}\\r\\n".
+              \ "\%{time_pretransfer}\\r\\n".
+              \ "\%{time_redirect}\\r\\n".
+              \ "\%{time_starttransfer}\\r\\n".
+              \ "\%{time_total}'"
   let url=request["URL"][0]
   let options=[]
   for option in get(request, "OPTION", [])
@@ -344,14 +352,24 @@ endfunction
 "process the response
 function! s:split_response(response_buffer, ...) abort
   let response=getbufvar(a:response_buffer, 'response')
+  let lines = split(response, "\\r\\n")
+  let times = lines[-7:]
+  let timeblock = "RESPONSE TIME: " . times[6] . "\r\n" .
+        \ "Name-Lookup: " . times[0] . "\r\n" .
+        \ "Connect: " . times[1] . "\r\n" . 
+        \ "App-Connect: " . times[2] . "\r\n" . 
+        \ "Pre-Transfer: " . times[3] . "\r\n" . 
+        \ "Redirects: " . times[4] . "\r\n" .
+        \ "Start-Transfer: " . times[5]
+  let response = join(lines[:-8], "\r\n")
   let split_response = split(response, "\\r\\n\\r\\n\\(\\([A-Z]\\+\\/[0-9\\.]".
   \ "\\+\\s\\+[0-9]\\+\\s\\+[A-Z]\\+\\)\\@!\\)")
   if len(split_response) > 1
-    return [split_response[0], split_response[1]]
+    return [split_response[0], split_response[1], timeblock]
   elseif len(split_response)
-    return [split_response[0], ""]
+    return [split_response[0], "", timeblock]
   else
-    return ["", ""]
+    return ["", "", timeblock]
   endif
 endfunction
 
@@ -361,14 +379,18 @@ function! s:show_response(response_buffer, options, ...) abort
   call s:QQ_request_syntax()
   normal! gg"_dG
   let response=getbufvar(a:response_buffer, 'response')
-  if response == ""
+  let split_response = s:split_response(a:response_buffer)
+  if split_response[0] == ""
     call append(0, "--NO RESPONSE--")
   else
     if index(a:options, "pretty-print") > -1
-      let split_response = s:split_response(a:response_buffer)
       let body = substitute(system("echo " . shellescape(split_response[1]) .
       \  " | python -m json.tool"), "\\n", "\\r\\n", "g")
-      let response = split_response[0] . "\r\n\r\n" . body
+      let response = split_response[0] . "\r\n\r\n" . split_response[2] . 
+            \ "\r\n\r\n" . body
+    else
+      let response = split_response[0] . "\r\n\r\n" . split_response[2] . 
+            \ "\r\n\r\n" . split_response[1]
     endif
     call append(0, split(response, "\r\n"))
   endif
