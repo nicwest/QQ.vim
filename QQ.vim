@@ -39,6 +39,11 @@ function! StripName(input_string)
   return substitute(a:input_string, '^:\(.\{-}\):$', '\1', '')
 endfunction
 
+"removes white space at the beginning and end of string
+function! s:strip(input_string) abort
+  return substitute(a:input_string, '^\s*\(.\{-}\)\s*$', '\1', '')
+endfunction
+
 "if string is 0, false, or no it is falsey (normally this would include nil
 "values or empty stings, but for the moment I think these will be synonymous
 "with setting true in the context of "OPTION: :{key}: {value}", might change
@@ -54,6 +59,17 @@ endfunction
 "if it's not falsey then it's truthy
 function! s:truthy(input_string)
   return 1 - s:falsey(a:input_string)
+endfunction
+
+"extract repeated expression from str
+function! s:matchstrmultiple(str, expr) abort
+  let itemcount = 1
+  let items = []
+  while match(a:str, a:expr, 0, itemcount) >= 0
+    call add(items, matchstr(a:str, a:expr, 0, itemcount))
+    let itemcount += 1
+  endwhile
+  return items
 endfunction
 
 "base64 encoder stolen from vimstuff
@@ -263,18 +279,19 @@ function! s:convert_query(query) abort
         \ "METHOD": [],
         \ "URL-PARAM": [],
         \ "HEADER": [],
+        \ "DATA": [],
+        \ "DATA-FILE": [],
         \ "BODY": [],
         \ "OPTION": [],
         \}
-  call add(request['METHOD'], matchstr(a:query, '-X\s\zs.\{-}\ze\s'))
-  let headercount = 1
-  let headermatch = '-H\s\([''"]\)\zs.\{-}\ze\1'
-  while match(a:query, headermatch, 0, headercount) > 0
-    let headerpair = matchstr(a:query, headermatch, 0, headercount)
-    call add(request['HEADER'], split(headerpair, ":"))
-    let headercount += 1
-  endwhile
   call add(request['URL'], matchstr(a:query, '\s\zs[a-zA-Z]\+:\/\/.*\ze$'))
+  call add(request['METHOD'], matchstr(a:query, '-X\s\zs.\{-}\ze\s'))
+  let request['HEADER'] = map(s:matchstrmultiple(a:query, '-H\s\([''"]\)\zs.\{-}\ze\1'), 'split(v:val, ":")')
+  let data_or_form = matchstr(a:query, '--\(data\|form\)\s\([''"]\)\zs.\{-}\ze\2')
+  let data_or_form_fields = map(s:matchstrmultiple(data_or_form, '\(^\|&\)\zs[^&]\+\ze\($\)\?'), 'split(v:val, "=")')
+  echo data_or_form_fields
+  let request['DATA'] = filter([] + data_or_form_fields, 'v:val[1][0] != "@"') 
+  let request['DATA-FILE'] = map(filter([] + data_or_form_fields, 'v:val[1][0] == "@"'), '[v:val[0], v:val[1][1:]]')
   return request
 endfunction
 
@@ -286,6 +303,8 @@ function! s:prefill_buffer(...) abort
           \ "METHOD": ["GET"], 
           \ "URL-PARAM": [["testparam", "users"]], 
           \ "HEADER": [["Cache-Control", "no-cache"]], 
+          \ "DATA": [],
+          \ "DATA-FILE": [],
           \ "BODY": [""],
           \ "OPTION": [["pretty-print", "True"]]
           \ }
@@ -333,12 +352,37 @@ function! s:exec_curl(request_buffer) abort
     endif
   endfor
   let curl_str.=" -X ".get(request, "METHOD", ["GET"])[0]
+  if len(get(request, "DATA", [])) || len(get(request, "DATA-FILE", []))
+    if len(get(request, "DATA-FILE", []))
+      let curl_str .= ' --form "'
+    else
+      let curl_str .= ' --data "'
+    endif 
+    let first = 1
+    for data in get(request, "DATA", [])
+      if first
+        let first = 0
+      else
+        let curl_str .= '&'
+      endif
+      let curl_str .= s:strip(data[0]).'='.s:strip(data[1])
+    endfor
+    for data_file in get(request, "DATA-FILE", [])
+      if first
+        let first = 0
+      else
+        let curl_str .= '&'
+      endif
+      let curl_str .= s:strip(data_file[0]).'=@'.s:strip(data_file[1])
+    endfor
+    let curl_str .= '"'
+  endif
   for header in get(request, "HEADER", [])
-    let curl_str.=" -H \"".header[0].":".header[1]."\""
+    let curl_str.=" -H \"".s:strip(header[0]).":".s:strip(header[1])."\""
   endfor
   let sub_url = substitute(url, '\([{}]\)', '\\\1', "g")
   for param in get(request, "URL-PARAM", [])
-    let sub_url=substitute(sub_url, ":".param[0].":", param[1], "g")
+    let sub_url=substitute(sub_url, ":".s:strip(param[0]).":", s:strip(param[1]), "g")
   endfor
   let b:response = system(curl_str." ".shellescape(sub_url))
   call s:save_query(curl_str." ".url)
