@@ -1,5 +1,5 @@
-if !exists('g:QQ_loaded') || &cp
-    finish
+if exists('g:QQ_loaded')
+  finish
 endif
 
 "other wise mark that it is loaded
@@ -451,15 +451,15 @@ function! s:show_response(response_buffer, options, ...) abort
     call append(0, "--NO RESPONSE--")
   else
     if index(a:options, "pretty-print") > -1
-      let body = substitute(system("echo " . shellescape(split_response[1]) .
-            \  " | python -m json.tool"), "\\n", "\\r\\n", "g")
-      let response = split_response[0] . "\r\n\r\n" . split_response[2] . 
-            \ "\r\n\r\n" . body
+      let decoded_body = system("echo " . shellescape(split_response[1]) .
+            \  " | python -m json.tool")
+      let body =  split(decoded_body, '\n')
     else
-      let response = split_response[0] . "\r\n\r\n" . split_response[2] . 
-            \ "\r\n\r\n" . split_response[1]
+      let body = split(substitute(split_response[1], "\\r\\n", '\n', "g"), '\n')
     endif
-    call append(0, split(response, "\r\n"))
+    let response = split_response[0] . "\r\n\r\n" . split_response[2] . 
+            \ "\r\n\r\n" 
+    call append(0, split(response, "\r\n") + body)
   endif
   normal! Gddgg
 endfunction
