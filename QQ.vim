@@ -1,9 +1,9 @@
-"if !exists('g:loaded_QQ') || &cp
-"    finish
-"endif
+if !exists('g:QQ_loaded') || &cp
+    finish
+endif
 
-""other wise mark that it is loaded
-"let g:loaded_QQ = 1
+"other wise mark that it is loaded
+let g:QQ_loaded = 1
 
 "so we are going to use this just in case someone wants to specify a different
 "curl executable
