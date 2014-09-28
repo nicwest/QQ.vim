@@ -31,6 +31,11 @@ if !exists('g:QQ_collection_window_height')
   let g:QQ_collection_window_height = 10
 endif
 
+"buffer prefix
+if !exists('g:QQ_buffer_prefix')
+  let g:QQ_buffer_prefix = '[QQ]'
+endif
+
 "this matches "{option}: [:{key}:] {value}"
 let s:request_line_ptrn = "^\\([A-Z-]\\+\\):\\s\\+\\(:[^:/]\\+:\\)\\?\\s*\\(.*\\)$"
 
@@ -161,15 +166,15 @@ endfunction
 
 "reads current collection to quickfix
 function! s:open_history(collection, buffer) abort
-  if !bufexists('HISTORY')
+  if !bufexists(g:QQ_buffer_prefix.'HISTORY')
     sil! exe 'keepa' ( g:QQ_collection_window_location == 'top' ? 'to' : 'bo' ) 
-          \ g:QQ_collection_window_height.'new HISTORY'
-  elseif bufwinnr('HISTORY') == -1
+          \ g:QQ_collection_window_height.'new' g:QQ_buffer_prefix.'HISTORY'
+  elseif bufwinnr(g:QQ_buffer_prefix.'HISTORY') == -1
     sil! exe 'keepa' ( g:QQ_collection_window_location == 'top' ? 'to' : 'bo' ) 
-          \ 'sb HISTORY'
+          \ 'sb' g:QQ_buffer_prefix.'HISTORY'
     sil! exe 'res 10'
   else
-    call s:focus_window_with_name('HISTORY')
+    call s:focus_window_with_name(g:QQ_buffer_prefix.'HISTORY')
   endif
   abc <buffer>
   let b:queries=split(system('cat '.expand(a:collection)), "\\n")
@@ -218,31 +223,31 @@ endfunction
 
 "finds the REQUEST buffer where ever it may be
 function! s:focus_request_buffer()
-  if and(!bufexists('REQUEST'), !bufexists('RESPONSE'))
+  if and(!bufexists(g:QQ_buffer_prefix.'REQUEST'), !bufexists(g:QQ_buffer_prefix.'RESPONSE'))
     "neither request or response buffer exists
-    sil! exe 'keepa bo 80vnew REQUEST'
-  elseif and(!bufexists('REQUEST'), bufwinnr('RESPONSE') != -1)
+    sil! exe 'keepa bo 80vnew' g:QQ_buffer_prefix.'REQUEST'
+  elseif and(!bufexists(g:QQ_buffer_prefix.'REQUEST'), bufwinnr(g:QQ_buffer_prefix.'RESPONSE') != -1)
     "request buffer doesn't exist, response buffer exists and is in window
-    call s:focus_window_with_name('RESPONSE')
-    sil! exe 'badd REQUEST'
+    call s:focus_window_with_name(g:QQ_buffer_prefix.'RESPONSE')
+    sil! exe 'badd' g:QQ_buffer_prefix.'REQUEST'
     sil! exe 'buf' bufnr('') 
-  elseif and(!bufexists('REQUEST'), bufexists('RESPONSE'))
+  elseif and(!bufexists(g:QQ_buffer_prefix.'REQUEST'), bufexists(g:QQ_buffer_prefix.'RESPONSE'))
     "request buffer doesn't exist, response buffer exists but is not in window
-    sil! exe 'keepa bo vert sb RESPONSE'
+    sil! exe 'keepa bo vert sb' g:QQ_buffer_prefix.'RESPONSE'
     sil! exe 'vert res 80'
-    sil! exe 'badd REQUEST'
+    sil! exe 'badd' g:QQ_buffer_prefix.'REQUEST'
     sil! exe 'buf' bufnr('') 
-  elseif and(bufwinnr('REQUEST') == -1, bufwinnr('RESPONSE') != -1)
+  elseif and(bufwinnr(g:QQ_buffer_prefix.'REQUEST') == -1, bufwinnr(g:QQ_buffer_prefix.'RESPONSE') != -1)
     "request buffer exists, response buffer exists and is in window
-    call s:focus_window_with_name('RESPONSE')
-    sil! exe 'buf' bufnr('REQUEST') 
-  elseif bufwinnr('REQUEST') == -1
+    call s:focus_window_with_name(g:QQ_buffer_prefix.'RESPONSE')
+    sil! exe 'buf' bufnr(g:QQ_buffer_prefix.'REQUEST') 
+  elseif bufwinnr(g:QQ_buffer_prefix.'REQUEST') == -1
     "request buffer exists but is not in window
-    sil! exe 'keepa bo vert sb REQUEST'
+    sil! exe 'keepa bo vert sb' g:QQ_buffer_prefix.'REQUEST'
     sil! exe 'vert res 80'
   else 
     "request buffer exists and is in window
-    call s:focus_window_with_name('REQUEST')
+    call s:focus_window_with_name(g:QQ_buffer_prefix.'REQUEST')
   endif
   nnoremap <buffer> QBA :call QQ#basic_auth()<CR>
   nnoremap <buffer> QP :call QQ#add_option('pretty-print')<CR>
@@ -329,8 +334,8 @@ endfunction
 "execute curl
 function! s:exec_curl(request_buffer) abort
   let request=getbufvar(a:request_buffer, 'request')
-  badd RESPONSE
-  buffer RESPONSE
+  exe 'badd' g:QQ_buffer_prefix.'RESPONSE'
+  exe 'buffer "'.g:QQ_buffer_prefix.'RESPONSE"'
   setlocal buftype=nofile
   setlocal noswapfile
   let curl_str=g:QQ_curl_executable . " -si -w '\\r\\n".
@@ -406,10 +411,10 @@ function! s:save_query (query) abort
     call remove(queries, in_previous_queries)
   endif
   let queries = [a:query] + queries
-  if bufwinnr('HISTORY') != -1
-    call setbufvar(bufnr('HISTORY'), 'queries', queries)
+  if bufwinnr(g:QQ_buffer_prefix.'HISTORY') != -1
+    call setbufvar(bufnr(g:QQ_buffer_prefix.'HISTORY'), 'queries', queries)
     let request_buffer=bufnr('')
-    call s:focus_window_with_name('HISTORY')
+    call s:focus_window_with_name(g:QQ_buffer_prefix.'HISTORY')
     call s:load_history_buffer()
     call s:focus_window_with_name(request_buffer)
   endif
