@@ -116,6 +116,8 @@ List of configurable options for the plugin:
 * `g:QQ_collection_window_location` position of the collection window,
    acceptable values are `'top'` and `'bottom'`. default `'top'`
 * `g:QQ_collection_window_height` height of collection window. default `10`
+* `g:QQ_buffer_prefix` buffer prefix of all QQ buffers, avoids naming clashes
+   default `'[QQ]'`
 
 Notes
 -----
