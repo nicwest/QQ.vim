@@ -5,55 +5,55 @@ endif
 "other wise mark that it is loaded
 let g:QQ_loaded = 1
 
-"so we are going to use this just in case someone wants to specify a different
-"curl executable
 if !exists('g:QQ_curl_executable')
+  "so we are going to use this just in case someone wants to specify a different
+  "curl executable
   let g:QQ_curl_executable = 'curl'
 endif
 
-"default collection location
 if !exists('g:QQ_default_collection')
+  "default collection location
   let g:QQ_default_collection = '~/.QQ.default.collection'
 endif
 
-"current collection
 if !exists('g:QQ_current_collection')
+  "current collection
   let g:QQ_current_collection = g:QQ_default_collection
 endif
 
-"collection window location
 if !exists('g:QQ_collection_window_location')
+  "collection window location
   let g:QQ_collection_window_location = 'top'
 endif
 
-"collection window height
 if !exists('g:QQ_collection_window_height')
+  "collection window height
   let g:QQ_collection_window_height = 10
 endif
 
-"buffer prefix
 if !exists('g:QQ_buffer_prefix')
+  "buffer prefix
   let g:QQ_buffer_prefix = '[QQ]'
 endif
 
 "this matches "{option}: [:{key}:] {value}"
 let s:request_line_ptrn = "^\\([A-Z-]\\+\\):\\s\\+\\(:[^:/]\\+:\\)\\?\\s*\\(.*\\)$"
 
-"turns ":{key}:" into "{key}"
 function! StripName(input_string)
+  "turns ":{key}:" into "{key}"
   return substitute(a:input_string, '^:\(.\{-}\):$', '\1', '')
 endfunction
 
-"removes white space at the beginning and end of string
 function! s:strip(input_string) abort
+  "removes white space at the beginning and end of string
   return substitute(a:input_string, '^\s*\(.\{-}\)\s*$', '\1', '')
 endfunction
 
-"if string is 0, false, or no it is falsey (normally this would include nil
-"values or empty stings, but for the moment I think these will be synonymous
-"with setting true in the context of "OPTION: :{key}: {value}", might change
-"this later)
 function! s:falsey(input_string)
+  "if string is 0, false, or no it is falsey (normally this would include nil
+  "values or empty stings, but for the moment I think these will be synonymous
+  "with setting true in the context of "OPTION: :{key}: {value}", might change
+  "this later)
   if a:input_string =~ "^\\s*\\(0\\|false\\|no\\)\\+\\s*$"
     return 1
   else
@@ -61,13 +61,13 @@ function! s:falsey(input_string)
   endif
 endfunction
 
-"if it's not falsey then it's truthy
 function! s:truthy(input_string)
+  "if it's not falsey then it's truthy
   return 1 - s:falsey(a:input_string)
 endfunction
 
-"extract repeated expression from str
 function! s:matchstrmultiple(str, expr) abort
+  "extract repeated expression from str
   let itemcount = 1
   let items = []
   while match(a:str, a:expr, 0, itemcount) >= 0
@@ -77,13 +77,20 @@ function! s:matchstrmultiple(str, expr) abort
   return items
 endfunction
 
-"base64 encoder stolen from vimstuff
-"TODO: implement this in vimscript like a boss
 function! s:base64encode(str) abort
+  "base64 encoder stolen from vimstuff
+  "TODO: implement this in vimscript like a boss
   return system("echo -n '".shellescape(a:str)."' | base64")[:-2]
 endfunction
 
+function! s:focus_window_with_name(window) abort
+  "focuses open window with loaded buffer name active
+  exe 'norm'.bufwinnr(a:window).'w'
+endfunction
+
 function! s:QQ_request_syntax() abort
+  "does all the syntaxing...
+  "TODO: Refactor this into buffer specfic things
   runtime! syntax/javascript.vim
   unlet b:current_syntax
   let b:current_syntax = "QQ"
@@ -112,17 +119,20 @@ function! s:QQ_request_syntax() abort
 endfunction
 
 augroup QQ
+  "this does nothing useful
   autocmd!
   autocmd BufWinLeave * let s:QQ_open = 0
   autocmd Syntax QQ call s:QQ_request_syntax()
 augroup END
 
-"open a new window
 function! s:open_window(...) abort
+  "open a new window
   call s:focus_request_buffer()
 endfunction
 
 function! s:setup_request_buffer() abort
+  "opens request buffer
+  "TODO: this needs to be refactored to something a bit more sane
   if exists('s:reloading_QQ')
     return
   endif
@@ -140,23 +150,21 @@ function! s:setup_request_buffer() abort
   unlet s:reloading_QQ
 endfunction
 
-function! s:focus_window_with_name(window) abort
-  exe 'norm'.bufwinnr(a:window).'w'
-endfunction
-
 function! QQ#open_window(...) abort
+  "opens request window
+  "TODO: make sane
   call s:open_window(a:000)
   call s:prefill_buffer()
 endfunction
 
-"converts buffer to request array and executes it
 function! QQ#send_request(...) abort
+  "converts buffer to request array and executes it
   call s:convert_buffer(bufnr(""))
   call s:exec_curl(bufnr(""))
 endfunction
 
-"opens quick fix style buffer list with current collection or default
 function! QQ#open_history() abort
+  "opens quick fix style buffer list with current collection or default
   if exists("b:current_collection")
     call s:open_history(b:current_collection, bufnr(""))
   else
@@ -164,8 +172,8 @@ function! QQ#open_history() abort
   endif
 endfunction
 
-"reads current collection to quickfix
 function! s:open_history(collection, buffer) abort
+  "reads current collection to quickfix
   if !bufexists(g:QQ_buffer_prefix.'HISTORY')
     sil! exe 'keepa' ( g:QQ_collection_window_location == 'top' ? 'to' : 'bo' ) 
           \ g:QQ_collection_window_height.'new' g:QQ_buffer_prefix.'HISTORY'
@@ -187,8 +195,8 @@ function! s:open_history(collection, buffer) abort
   call s:load_history_buffer()
 endfunction
 
-"loads history buffer from b:queries
 function! s:load_history_buffer() abort
+  "loads history buffer from b:queries
   setl ma
   norm gg"_dG
   let displaylist=copy(b:queries)
@@ -201,28 +209,28 @@ function! s:load_history_buffer() abort
   setl noma
 endfunction
 
-"load current query line under cursor to REQUEST buffer
 function! QQ#history_to_request()
+  "load current query line under cursor to REQUEST buffer
   let query=get(b:queries, line(".")-1, 0)
   call s:focus_request_buffer()
   call s:prefill_buffer(s:convert_query(query))
 endfunction
 
-"adds basic auth header via prompt
 function! QQ#basic_auth() abort
+  "adds basic auth header via prompt
   let user = input("User: ")
   let password = inputsecret("Password: ")
   let auth_string = s:base64encode(user.":".password)
   call append(line("$"), ["HEADER: :Authorization: Basic ".auth_string])
 endfunction
 
-"adds option with 'option_name' to REQUEST buffer
 function! QQ#add_option(option_name) abort
+  "adds option with 'option_name' to REQUEST buffer
   call append(line("$"), ["OPTION: :" . a:option_name . ": true"])
 endfunction
 
-"finds the REQUEST buffer where ever it may be
 function! s:focus_request_buffer()
+  "finds the REQUEST buffer where ever it may be
   if and(!bufexists(g:QQ_buffer_prefix.'REQUEST'), !bufexists(g:QQ_buffer_prefix.'RESPONSE'))
     "neither request or response buffer exists
     sil! exe 'keepa bo 80vnew' g:QQ_buffer_prefix.'REQUEST'
@@ -254,8 +262,8 @@ function! s:focus_request_buffer()
   call s:setup_request_buffer()
 endfunction
 
-"turn buffer into list of curl varibles
 function! s:convert_buffer(bufno_of_request) abort
+  "turn buffer into list of curl varibles
   let request = {}
   for line in getbufline(a:bufno_of_request, 0, line("$"))
     if line =~# s:request_line_ptrn
@@ -277,8 +285,8 @@ function! s:convert_buffer(bufno_of_request) abort
   let b:request = request
 endfunction
 
-"turn curl query into list of curl varibles
 function! s:convert_query(query) abort
+  "turn curl query into list of curl varibles
   let request={
         \ "URL": [],
         \ "METHOD": [],
@@ -300,8 +308,8 @@ function! s:convert_query(query) abort
   return request
 endfunction
 
-"prefill buffer
 function! s:prefill_buffer(...) abort
+  "prefill buffer
   if !exists("s:last_request")  
     let s:last_request = {
           \ "URL": ["http://localhost:8000"], 
@@ -331,8 +339,8 @@ function! s:prefill_buffer(...) abort
   normal! Gddgg
 endfunction
 
-"execute curl
 function! s:exec_curl(request_buffer) abort
+  "execute curl
   let request=getbufvar(a:request_buffer, 'request')
   exe 'badd' g:QQ_buffer_prefix.'RESPONSE'
   exe 'buffer "'.g:QQ_buffer_prefix.'RESPONSE"'
@@ -394,8 +402,8 @@ function! s:exec_curl(request_buffer) abort
   call s:show_response(bufnr(""), options)
 endfunction
 
-"save query
 function! s:save_query (query) abort
+  "save query
   let filename=resolve(expand(g:QQ_current_collection))
   if filereadable(filename)
     "TODO: needs to be cross platform, does windows have cat?
@@ -421,8 +429,8 @@ function! s:save_query (query) abort
   call writefile(queries, filename)
 endfunction
 
-"process the response
 function! s:split_response(response_buffer, ...) abort
+  "process the response
   let response=getbufvar(a:response_buffer, 'response')
   let lines = split(response, "\\r\\n")
   let times = lines[-7:]
@@ -445,8 +453,8 @@ function! s:split_response(response_buffer, ...) abort
   endif
 endfunction
 
-"shows response in current buffer
 function! s:show_response(response_buffer, options, ...) abort
+  "shows response in current buffer
   set ft=QQ
   call s:QQ_request_syntax()
   normal! gg"_dG
@@ -470,7 +478,10 @@ function! s:show_response(response_buffer, options, ...) abort
 endfunction
 
 function! s:close_window(...) abort
+  "hello I'm a useless function
 endfunction
 
+"wrong place wrong time....
+"TODO: not this
 nnoremap QQ :call QQ#open_window()<CR>
 nnoremap QH :call QQ#open_history()<CR>
