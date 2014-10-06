@@ -68,10 +68,13 @@ Body, at the moment this does nothing :)
 
 ###Key binds###
 
-**from a normal buffer**
+**from a normal/any buffer**
 
 * `QQ` opens a new request window
 * `QH` opens the recent request history
+* `QCL` opens the collection list
+* `QCC` change current collection
+* `QAC` add a new collection
 
 **from a REQUEST buffer**
 
@@ -88,6 +91,10 @@ Body, at the moment this does nothing :)
 **from a HISTORY buffer**
 
 * `<CR>` loads previous request into REQUEST buffer
+
+**from a COLLECTIONS buffer**
+
+* `<CR>` open collection under cursor and set as current
 
 ###Example request###
 
@@ -113,6 +120,8 @@ List of configurable options for the plugin:
   `'~/.QQ.default.collection'`
 * `g:QQ_current_collection` location of the loaded collection. default
   `g:QQ_default_collection`
+  `g:QQ_collection_list` location of the collection list, default
+  `~/.QQ.collections`
 * `g:QQ_collection_window_location` position of the collection window,
    acceptable values are `'top'` and `'bottom'`. default `'top'`
 * `g:QQ_collection_window_height` height of collection window. default `10`
