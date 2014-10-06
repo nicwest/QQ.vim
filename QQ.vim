@@ -1,3 +1,8 @@
+" Curl wrapper in the style of Postman app
+" Last Change: 2014-10-06	
+" Init: {{{1
+" Loaded Vars {{{2
+" ==========
 if exists('g:QQ_loaded')
   finish
 endif
@@ -5,6 +10,8 @@ endif
 "other wise mark that it is loaded
 let g:QQ_loaded = 1
 
+" Options {{{2
+" ======
 if !exists('g:QQ_curl_executable')
   "so we are going to use this just in case someone wants to specify a different
   "curl executable
@@ -14,6 +21,11 @@ endif
 if !exists('g:QQ_default_collection')
   "default collection location
   let g:QQ_default_collection = '~/.QQ.default.collection'
+endif
+
+if !exists('g:QQ_collection_list')
+  "collection list location
+  let g:QQ_collection_list = '~/.QQ.collections'
 endif
 
 if !exists('g:QQ_current_collection')
@@ -36,9 +48,16 @@ if !exists('g:QQ_buffer_prefix')
   let g:QQ_buffer_prefix = '[QQ]'
 endif
 
+" ---------------------------------------------------------------------
+
+" Utilities: {{{1
+" Regex {{{2
+" ====
 "this matches "{option}: [:{key}:] {value}"
 let s:request_line_ptrn = "^\\([A-Z-]\\+\\):\\s\\+\\(:[^:/]\\+:\\)\\?\\s*\\(.*\\)$"
 
+" String Functions {{{2
+" ===============
 function! StripName(input_string)
   "turns ":{key}:" into "{key}"
   return substitute(a:input_string, '^:\(.\{-}\):$', '\1', '')
@@ -47,23 +66,6 @@ endfunction
 function! s:strip(input_string) abort
   "removes white space at the beginning and end of string
   return substitute(a:input_string, '^\s*\(.\{-}\)\s*$', '\1', '')
-endfunction
-
-function! s:falsey(input_string)
-  "if string is 0, false, or no it is falsey (normally this would include nil
-  "values or empty stings, but for the moment I think these will be synonymous
-  "with setting true in the context of "OPTION: :{key}: {value}", might change
-  "this later)
-  if a:input_string =~ "^\\s*\\(0\\|false\\|no\\)\\+\\s*$"
-    return 1
-  else
-    return 0
-  endif
-endfunction
-
-function! s:truthy(input_string)
-  "if it's not falsey then it's truthy
-  return 1 - s:falsey(a:input_string)
 endfunction
 
 function! s:matchstrmultiple(str, expr) abort
@@ -83,11 +85,35 @@ function! s:base64encode(str) abort
   return system("echo -n '".shellescape(a:str)."' | base64")[:-2]
 endfunction
 
+" Boolean Functions {{{2
+" ================
+function! s:falsey(input_string)
+  "if string is 0, false, or no it is falsey (normally this would include nil
+  "values or empty stings, but for the moment I think these will be synonymous
+  "with setting true in the context of "OPTION: :{key}: {value}", might change
+  "this later)
+  if a:input_string =~ "^\\s*\\(0\\|false\\|no\\)\\+\\s*$"
+    return 1
+  else
+    return 0
+  endif
+endfunction
+
+function! s:truthy(input_string)
+  "if it's not falsey then it's truthy
+  return 1 - s:falsey(a:input_string)
+endfunction
+
+" Window Functions {{{2
 function! s:focus_window_with_name(window) abort
   "focuses open window with loaded buffer name active
   exe 'norm'.bufwinnr(a:window).'w'
 endfunction
 
+" ---------------------------------------------------------------------
+
+" Syntax: {{{1
+" Horrible Monstrosities {{{2
 function! s:QQ_request_syntax() abort
   "does all the syntaxing...
   "TODO: Refactor this into buffer specfic things
@@ -118,6 +144,10 @@ function! s:QQ_request_syntax() abort
   set foldmethod=syntax
 endfunction
 
+" ---------------------------------------------------------------------
+
+" Auto Groups: {{{1
+" QQ? {{{2
 augroup QQ
   "this does nothing useful
   autocmd!
@@ -125,14 +155,24 @@ augroup QQ
   autocmd Syntax QQ call s:QQ_request_syntax()
 augroup END
 
+" ---------------------------------------------------------------------
+
+" Core Functions: {{{1
+" Request {{{2
+" =======
+
+" Open {{{3
+" ----
 function! s:open_window(...) abort
   "open a new window
+  "FIXME: I don't think this does anything anymore :(
   call s:focus_request_buffer()
 endfunction
 
 function! s:setup_request_buffer() abort
   "opens request buffer
   "TODO: this needs to be refactored to something a bit more sane
+  "FIXME: I don't think this does anything anymore :(
   if exists('s:reloading_QQ')
     return
   endif
@@ -148,85 +188,6 @@ function! s:setup_request_buffer() abort
   let s:request_window = winnr()
   nnoremap <buffer> QQ :call QQ#send_request()<CR>
   unlet s:reloading_QQ
-endfunction
-
-function! QQ#open_window(...) abort
-  "opens request window
-  "TODO: make sane
-  call s:open_window(a:000)
-  call s:prefill_buffer()
-endfunction
-
-function! QQ#send_request(...) abort
-  "converts buffer to request array and executes it
-  call s:convert_buffer(bufnr(""))
-  call s:exec_curl(bufnr(""))
-endfunction
-
-function! QQ#open_history() abort
-  "opens quick fix style buffer list with current collection or default
-  if exists("b:current_collection")
-    call s:open_history(b:current_collection, bufnr(""))
-  else
-    call s:open_history(g:QQ_current_collection, bufnr(""))
-  endif
-endfunction
-
-function! s:open_history(collection, buffer) abort
-  "reads current collection to quickfix
-  if !bufexists(g:QQ_buffer_prefix.'HISTORY')
-    sil! exe 'keepa' ( g:QQ_collection_window_location == 'top' ? 'to' : 'bo' ) 
-          \ g:QQ_collection_window_height.'new' g:QQ_buffer_prefix.'HISTORY'
-  elseif bufwinnr(g:QQ_buffer_prefix.'HISTORY') == -1
-    sil! exe 'keepa' ( g:QQ_collection_window_location == 'top' ? 'to' : 'bo' ) 
-          \ 'sb' g:QQ_buffer_prefix.'HISTORY'
-    sil! exe 'res 10'
-  else
-    call s:focus_window_with_name(g:QQ_buffer_prefix.'HISTORY')
-  endif
-  abc <buffer>
-  let b:queries=split(system('cat '.expand(a:collection)), "\\n")
-  setl ma
-  setl noswf nonu nobl nowrap nolist nospell nocuc wfh
-  setl fdc=0 fdl=99 tw=0 bt=nofile bh=unload
-  if v:version > 702
-    setl nornu noudf cc=0
-  end
-  call s:load_history_buffer()
-endfunction
-
-function! s:load_history_buffer() abort
-  "loads history buffer from b:queries
-  setl ma
-  norm gg"_dG
-  let displaylist=copy(b:queries)
-  call s:QQ_request_syntax()
-  call map(displaylist, 'matchstr(v:val, ''-X\s\zs.\{-}\s\ze'') .' . "	".
-        \' matchstr(v:val, ''\s\zs[a-zA-Z]\+:\/\/.\{-}\ze$'')')
-  call append(0, displaylist)
-  nnoremap <buffer> <CR> :call QQ#history_to_request()<CR>
-  norm Gddgg
-  setl noma
-endfunction
-
-function! QQ#history_to_request()
-  "load current query line under cursor to REQUEST buffer
-  let query=get(b:queries, line(".")-1, 0)
-  call s:focus_request_buffer()
-  call s:prefill_buffer(s:convert_query(query))
-endfunction
-
-function! QQ#basic_auth() abort
-  "adds basic auth header via prompt
-  let user = input("User: ")
-  let password = inputsecret("Password: ")
-  let auth_string = s:base64encode(user.":".password)
-  call append(line("$"), ["HEADER: :Authorization: Basic ".auth_string])
-endfunction
-
-function! QQ#add_option(option_name) abort
-  "adds option with 'option_name' to REQUEST buffer
-  call append(line("$"), ["OPTION: :" . a:option_name . ": true"])
 endfunction
 
 function! s:focus_request_buffer()
@@ -262,6 +223,8 @@ function! s:focus_request_buffer()
   call s:setup_request_buffer()
 endfunction
 
+" Convert {{{3
+" -------
 function! s:convert_buffer(bufno_of_request) abort
   "turn buffer into list of curl varibles
   let request = {}
@@ -285,29 +248,37 @@ function! s:convert_buffer(bufno_of_request) abort
   let b:request = request
 endfunction
 
-function! s:convert_query(query) abort
-  "turn curl query into list of curl varibles
-  let request={
-        \ "URL": [],
-        \ "METHOD": [],
-        \ "URL-PARAM": [],
-        \ "HEADER": [],
-        \ "DATA": [],
-        \ "DATA-FILE": [],
-        \ "BODY": [],
-        \ "OPTION": [],
-        \}
-  call add(request['URL'], matchstr(a:query, '\s\zs[a-zA-Z]\+:\/\/.*\ze$'))
-  call add(request['METHOD'], matchstr(a:query, '-X\s\zs.\{-}\ze\s'))
-  let request['HEADER'] = map(s:matchstrmultiple(a:query, '-H\s\([''"]\)\zs.\{-}\ze\1'), 'split(v:val, ":")')
-  let data_or_form = matchstr(a:query, '--\(data\|form\)\s\([''"]\)\zs.\{-}\ze\2')
-  let data_or_form_fields = map(s:matchstrmultiple(data_or_form, '\(^\|&\)\zs[^&]\+\ze\($\)\?'), 'split(v:val, "=")')
-  echo data_or_form_fields
-  let request['DATA'] = filter([] + data_or_form_fields, 'v:val[1][0] != "@"') 
-  let request['DATA-FILE'] = map(filter([] + data_or_form_fields, 'v:val[1][0] == "@"'), '[v:val[0], v:val[1][1:]]')
-  return request
+" Save {{{3
+" ----
+function! s:save_query (query) abort
+  "save query
+  let filename=resolve(expand(g:QQ_current_collection))
+  if filereadable(filename)
+    "TODO: needs to be cross platform, does windows have cat?
+    let contents=system('cat '.filename)
+  else
+    "TODO: needs to be cross platform, does windows have touch?
+    call system('touch '.filename)
+    let contents=""
+  endif
+  let queries=split(contents, "\\n")
+  let in_previous_queries = index(queries, a:query)
+  if in_previous_queries > -1
+    call remove(queries, in_previous_queries)
+  endif
+  let queries = [a:query] + queries
+  if bufwinnr(g:QQ_buffer_prefix.'HISTORY') != -1
+    call setbufvar(bufnr(g:QQ_buffer_prefix.'HISTORY'), 'queries', queries)
+    let request_buffer=bufnr('')
+    call s:focus_window_with_name(g:QQ_buffer_prefix.'HISTORY')
+    call s:load_history_buffer()
+    call s:focus_window_with_name(request_buffer)
+  endif
+  call writefile(queries, filename)
 endfunction
 
+" Populate {{{3
+" --------
 function! s:prefill_buffer(...) abort
   "prefill buffer
   if !exists("s:last_request")  
@@ -339,11 +310,46 @@ function! s:prefill_buffer(...) abort
   normal! Gddgg
 endfunction
 
+" Exposed {{{3
+" -------
+function! QQ#open_window(...) abort
+  "opens request window
+  "TODO: make sane
+  call s:open_window(a:000)
+  call s:prefill_buffer()
+endfunction
+
+function! QQ#send_request(...) abort
+  "converts buffer to request array and executes it
+  call s:convert_buffer(bufnr(""))
+  call s:exec_curl(bufnr(""))
+endfunction
+
+function! QQ#basic_auth() abort
+  "adds basic auth header via prompt to request buffer
+  "TODO: swap to request buffer
+  let user = input("User: ")
+  let password = inputsecret("Password: ")
+  let auth_string = s:base64encode(user.":".password)
+  call append(line("$"), ["HEADER: :Authorization: Basic ".auth_string])
+endfunction
+
+function! QQ#add_option(option_name) abort
+  "adds option with 'option_name' to REQUEST buffer
+  call append(line("$"), ["OPTION: :" . a:option_name . ": true"])
+endfunction
+
+
+" Response {{{2
+" ========
+
+" Convert {{{3
+" -------
 function! s:exec_curl(request_buffer) abort
   "execute curl
   let request=getbufvar(a:request_buffer, 'request')
-  exe 'badd' g:QQ_buffer_prefix.'RESPONSE'
-  exe 'buffer "'.g:QQ_buffer_prefix.'RESPONSE"'
+  sil! exe 'badd' g:QQ_buffer_prefix.'RESPONSE'
+  sil! exe 'buffer "'.g:QQ_buffer_prefix.'RESPONSE"'
   setlocal buftype=nofile
   setlocal noswapfile
   let curl_str=g:QQ_curl_executable . " -si -w '\\r\\n".
@@ -402,33 +408,6 @@ function! s:exec_curl(request_buffer) abort
   call s:show_response(bufnr(""), options)
 endfunction
 
-function! s:save_query (query) abort
-  "save query
-  let filename=resolve(expand(g:QQ_current_collection))
-  if filereadable(filename)
-    "TODO: needs to be cross platform, does windows have cat?
-    let contents=system('cat '.filename)
-  else
-    "TODO: needs to be cross platform, does windows have touch?
-    call system('touch '.filename)
-    let contents=""
-  endif
-  let queries=split(contents, "\\n")
-  let in_previous_queries = index(queries, a:query)
-  if in_previous_queries > -1
-    call remove(queries, in_previous_queries)
-  endif
-  let queries = [a:query] + queries
-  if bufwinnr(g:QQ_buffer_prefix.'HISTORY') != -1
-    call setbufvar(bufnr(g:QQ_buffer_prefix.'HISTORY'), 'queries', queries)
-    let request_buffer=bufnr('')
-    call s:focus_window_with_name(g:QQ_buffer_prefix.'HISTORY')
-    call s:load_history_buffer()
-    call s:focus_window_with_name(request_buffer)
-  endif
-  call writefile(queries, filename)
-endfunction
-
 function! s:split_response(response_buffer, ...) abort
   "process the response
   let response=getbufvar(a:response_buffer, 'response')
@@ -453,6 +432,8 @@ function! s:split_response(response_buffer, ...) abort
   endif
 endfunction
 
+" Populate {{{3
+" --------
 function! s:show_response(response_buffer, options, ...) abort
   "shows response in current buffer
   set ft=QQ
@@ -477,11 +458,256 @@ function! s:show_response(response_buffer, options, ...) abort
   normal! Gddgg
 endfunction
 
-function! s:close_window(...) abort
-  "hello I'm a useless function
+
+" History {{{2
+" =======
+" Open {{{3
+" ----
+function! s:open_history(collection, buffer) abort
+  "opens history of current collection
+  if !bufexists(g:QQ_buffer_prefix.'HISTORY') && bufwinnr(g:QQ_buffer_prefix.'COLLECTIONS') == -1
+    sil! exe 'keepa' ( g:QQ_collection_window_location == 'top' ? 'to' : 'bo' ) 
+          \ g:QQ_collection_window_height.'new' g:QQ_buffer_prefix.'HISTORY'
+  elseif bufwinnr(g:QQ_buffer_prefix.'HISTORY') == -1 && bufwinnr(g:QQ_buffer_prefix.'COLLECTIONS') == -1
+    sil! exe 'keepa' ( g:QQ_collection_window_location == 'top' ? 'to' : 'bo' ) 
+          \ 'sb' g:QQ_buffer_prefix.'HISTORY'
+    sil! exe 'res 10'
+  elseif !bufexists(g:QQ_buffer_prefix.'HISTORY') && bufwinnr(g:QQ_buffer_prefix.'COLLECTIONS') != -1
+    sil! exe 'badd' g:QQ_buffer_prefix.'HISTORY'
+    call s:focus_window_with_name(g:QQ_buffer_prefix.'COLLECTIONS')
+    sil! exe 'buffer' bufnr(g:QQ_buffer_prefix.'HISTORY')
+  elseif bufwinnr(g:QQ_buffer_prefix.'HISTORY') == -1 && bufwinnr(g:QQ_buffer_prefix.'COLLECTIONS') != -1
+    call s:focus_window_with_name(g:QQ_buffer_prefix.'COLLECTIONS')
+    sil! exe 'buffer' bufnr(g:QQ_buffer_prefix.'HISTORY')
+  else
+    call s:focus_window_with_name(g:QQ_buffer_prefix.'HISTORY')
+  endif
+  abc <buffer>
+  let b:queries=split(system('cat '.expand(a:collection)), "\\n")
+  setl ma
+  setl noswf nonu nobl nowrap nolist nospell nocuc wfh
+  setl fdc=0 fdl=99 tw=0 bt=nofile bh=unload
+  if v:version > 702
+    setl nornu noudf cc=0
+  end
+  call s:load_history_buffer()
 endfunction
 
+" Populate {{{3
+" --------
+function! s:load_history_buffer() abort
+  "loads history buffer from b:queries
+  setl ma
+  norm gg"_dG
+  let displaylist=copy(b:queries)
+  call s:QQ_request_syntax()
+  call map(displaylist, 'matchstr(v:val, ''-X\s\zs.\{-}\s\ze'') .' . "	".
+        \' matchstr(v:val, ''\s\zs[a-zA-Z]\+:\/\/.\{-}\ze$'')')
+  call append(0, displaylist)
+  nnoremap <buffer> <CR> :call QQ#history_to_request()<CR>
+  norm Gddgg
+  setl noma
+endfunction
+
+function! s:convert_query(query) abort
+  "turn curl query into list of curl varibles
+  let request={
+        \ "URL": [],
+        \ "METHOD": [],
+        \ "URL-PARAM": [],
+        \ "HEADER": [],
+        \ "DATA": [],
+        \ "DATA-FILE": [],
+        \ "BODY": [],
+        \ "OPTION": [],
+        \}
+  call add(request['URL'], matchstr(a:query, '\s\zs[a-zA-Z]\+:\/\/.*\ze$'))
+  call add(request['METHOD'], matchstr(a:query, '-X\s\zs.\{-}\ze\s'))
+  let request['HEADER'] = map(s:matchstrmultiple(a:query, '-H\s\([''"]\)\zs.\{-}\ze\1'), 'split(v:val, ":")')
+  let data_or_form = matchstr(a:query, '--\(data\|form\)\s\([''"]\)\zs.\{-}\ze\2')
+  let data_or_form_fields = map(s:matchstrmultiple(data_or_form, '\(^\|&\)\zs[^&]\+\ze\($\)\?'), 'split(v:val, "=")')
+  let request['DATA'] = filter([] + data_or_form_fields, 'v:val[1][0] != "@"') 
+  let request['DATA-FILE'] = map(filter([] + data_or_form_fields, 'v:val[1][0] == "@"'), '[v:val[0], v:val[1][1:]]')
+  return request
+endfunction
+
+" Exposed {{{3
+" -------
+function! QQ#open_history() abort
+  "opens quick fix style buffer list with current collection or default
+  if exists("b:current_collection")
+    call s:open_history(b:current_collection, bufnr(""))
+  else
+    call s:open_history(g:QQ_current_collection, bufnr(""))
+  endif
+endfunction
+
+function! QQ#history_to_request()
+  "load current query line under cursor to REQUEST buffer
+  let query=get(b:queries, line(".")-1, 0)
+  call s:focus_request_buffer()
+  call s:prefill_buffer(s:convert_query(query))
+endfunction
+
+
+" Collection {{{2
+" ==========
+" Open {{{3
+" ----
+function! s:open_collection_list(collection_list) abort
+  "opens collection list
+  if !filereadable(expand(a:collection_list))
+    call system('echo "[QQ DEFAULT COLLECTION] '.g:QQ_default_collection.'" > '.expand(a:collection_list))
+  endif
+
+  if !bufexists(g:QQ_buffer_prefix.'COLLECTIONS') && bufwinnr(g:QQ_buffer_prefix.'HISTORY') == -1
+    sil! exe 'keepa' ( g:QQ_collection_window_location == 'top' ? 'to' : 'bo' ) 
+          \ g:QQ_collection_window_height.'new' g:QQ_buffer_prefix.'COLLECTIONS'
+  elseif bufwinnr(g:QQ_buffer_prefix.'COLLECTIONS') == -1 && bufwinnr(g:QQ_buffer_prefix.'HISTORY') == -1
+    sil! exe 'keepa' ( g:QQ_collection_window_location == 'top' ? 'to' : 'bo' ) 
+          \ 'sb' g:QQ_buffer_prefix.'COLLECTIONS'
+    sil! exe 'res 10'
+  elseif !bufexists(g:QQ_buffer_prefix.'COLLECTIONS') && bufwinnr(g:QQ_buffer_prefix.'HISTORY') != -1
+    sil! exe 'badd' g:QQ_buffer_prefix.'COLLECTIONS'
+    call s:focus_window_with_name(g:QQ_buffer_prefix.'HISTORY')
+    sil! exe 'buffer' bufnr(g:QQ_buffer_prefix.'COLLECTIONS')
+  elseif bufwinnr(g:QQ_buffer_prefix.'COLLECTIONS') == -1 && bufwinnr(g:QQ_buffer_prefix.'HISTORY') != -1
+    call s:focus_window_with_name(g:QQ_buffer_prefix.'HISTORY')
+    sil! exe 'buffer' bufnr(g:QQ_buffer_prefix.'COLLECTIONS')
+  else
+    call s:focus_window_with_name(g:QQ_buffer_prefix.'COLLECTIONS')
+  endif
+  abc <buffer>
+  let b:collections=split(system('cat '.expand(a:collection_list)), "\\n")
+  setl ma
+  setl noswf nonu nobl nowrap nolist nospell nocuc wfh
+  setl fdc=0 fdl=99 tw=0 bt=nofile bh=unload
+  if v:version > 702
+    setl nornu noudf cc=0
+  end
+  call s:load_collections_buffer()
+endfunction
+
+" Add {{{3
+" ---
+function! s:add_collection(path, name, collection_list) abort
+  "adds collection to collection list
+  let path = fnamemodify(a:path, ":p")
+  if isdirectory(path)
+    throw "collection path is directory:" a:path
+  endif
+  let directory = fnamemodify(a:path, ":p:h")
+  if !isdirectory(directory)
+    throw "target directory doesn't exist:" directory
+  endif
+  let line = "[".a:name."] ".a:path
+  let collection_list = split(system('cat '.expand(a:collection_list)), '\n') 
+  let collection_files = [] + collection_list
+  call map(collection_files, "fnamemodify(matchstr(v:val, '^\\(\\[.*\\]\\s*\\)\\?\\zs.\\+\\ze$'), ':p')")
+  let list_index = index(collection_files, path) 
+  if list_index >= 0
+    let collection_list[list_index] = line
+  else
+    call add(collection_list, line)
+  endif
+  call writefile(collection_list, expand(a:collection_list))
+  if !filereadable(path)
+    call writefile([], path)
+  endif
+endfunction
+
+" Populate {{{3
+" --------
+function! s:load_collections_buffer() abort
+  "loads collection buffer from b:collections
+  setl ma
+  norm gg"_dG
+  let displaylist=copy(b:collections)
+  call s:QQ_request_syntax()
+  call append(0, displaylist)
+  nnoremap <buffer> <CR> :call QQ#collection_to_history()<CR>
+  norm Gddgg
+  setl noma
+endfunction
+
+" Modify {{{3
+" ------
+function! s:set_current_collection(collection) abort
+  "set current collection
+  let g:QQ_current_collection = a:collection
+  let b:current_buffer = a:collection
+  call s:open_history(a:collection, bufnr(""))
+  echo g:QQ_buffer_prefix "current collection:" a:collection
+endfunction
+
+" Completion {{{3
+" ----------
+
+function! s:collection_completion (A, L, P) abort
+  let collection_list = readfile(expand(g:QQ_collection_list))
+  call map(collection_list, "matchstr(v:val, '^\\[\\zs.*\\ze\\]\\s*.\\+$')")
+  echo collection_list
+  return join(collection_list, "\n")
+endfunction
+
+" Utilities {{{3
+" ---------
+function! s:get_collection_path_from_name (name) abort
+  let collection_list = readfile(expand(g:QQ_collection_list))
+  call filter(collection_list, "v:val =~ '\\['.a:name.'\\].*$'")
+  if len(collection_list) > 0
+    return matchstr(collection_list[0], '^\(\[.*\]\s*\)\?\zs.\+\ze$')
+  else
+    return ''
+  endif
+endfunction
+
+" Exposed {{{3
+" -------
+function! QQ#open_collection_list() abort
+  "opens quick fix style buffer list with collections
+  call s:open_collection_list(g:QQ_collection_list)
+endfunction
+
+function! QQ#add_collection() abort
+  "add a collection via prompt
+  let path = input("New collection (./.QQ.collection): ", ".QQ.collection", "file")
+  let name = input("Collection name: ")
+  call s:add_collection(path, name, g:QQ_collection_list)
+  call s:set_current_collection(path)
+endfunction
+
+function! QQ#collection_completion(A, L, P) abort
+  return s:collection_completion(a:A, a:L, a:P)
+endfunction
+
+function! QQ#change_collection() abort
+  let collection = input("Change collection: ", "", "custom,QQ#collection_completion")
+  let path = s:get_collection_path_from_name(collection)
+  if len(path) > 0
+    call s:set_current_collection(path)
+  else
+    throw "collection with the name" collection "could not be found"
+  endif
+endfunction
+
+function! QQ#collection_to_history()
+  "load current query line under cursor to REQUEST buffer
+  let collection=matchstr(get(b:collections, line(".")-1, 0), '^\(\[.*\]\s*\)\?\zs.\+\ze$')
+  call s:open_history(collection, bufnr(""))
+endfunction
+
+" ---------------------------------------------------------------------
+
+
+" Key Bindings {{{1
+" ==========
 "wrong place wrong time....
 "TODO: not this
 nnoremap QQ :call QQ#open_window()<CR>
 nnoremap QH :call QQ#open_history()<CR>
+nnoremap QCL :call QQ#open_collection_list()<CR>
+nnoremap QAC :call QQ#add_collection()<CR>
+nnoremap QCC :call QQ#change_collection()<CR>
+" Misc {{{1
+" vim:fdm=marker
