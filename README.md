@@ -25,13 +25,13 @@ These are the current accepted request options
 `URL: <url>`
 
 Target URL, at present only the first URL option will be processed. URL's can
-also make use of URL parameter names in the format of `:<url parameter name>:`.
+also make use of URL variable names in the format of `:<url variable name>:`.
 
-`URL-PARAM: :<url parameter name>: <url parameter value>`
+`URL-VAR: :<url variable name>: <url variable value>`
 
-URL parameter, this option will replace instances of `:<url parameter name>:`
-present in the URL with the specified `<url parameter value>`. Only the name of
-the parameter is stored in the history this should be useful for sensitive
+URL variable, this option will replace instances of `:<url variable name>:`
+present in the URL with the specified `<url variable value>`. Only the name of
+the variable is stored in the history this should be useful for sensitive
 information.
 
 `METHOD: <method>`
@@ -101,8 +101,8 @@ Body, at the moment this does nothing :)
 
 ```
 METHOD:	POST
-URL:	http://example.com/:test-param:/upload
-URL-PARAM: :test-param: supersecretkey
+URL:	http://example.com/:test-var:/upload
+URL-VAR: :test-var: supersecretkey
 HEADER:	:Cache-Control: no-cache
 OPTION:	:pretty-print: True
 OPTION:	:follow: True
