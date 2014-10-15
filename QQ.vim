@@ -218,8 +218,8 @@ function! s:focus_request_buffer()
     "request buffer exists and is in window
     call s:focus_window_with_name(g:QQ_buffer_prefix.'REQUEST')
   endif
-  nnoremap <buffer> QBA :call QQ#basic_auth()<CR>
-  nnoremap <buffer> QOA2 :call QQ#oauth2()<CR>
+  nnoremap <buffer> QAB :call QQ#basic_auth()<CR>
+  nnoremap <buffer> QAO :call QQ#oauth2()<CR>
   nnoremap <buffer> QP :call QQ#add_option('pretty-print')<CR>
   call s:setup_request_buffer()
 endfunction

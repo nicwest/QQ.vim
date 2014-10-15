@@ -80,7 +80,8 @@ Body, at the moment this does nothing :)
 
 * `QQ` executes the current request as defined in the buffer
 * `QP` adds the JSON pretty-printing option to the current request
-* `QBA` adds basic authentication to the current request
+* `QAB` adds basic authentication to the current request
+* `QAO` adds oAuth2 to the current request
 * `QH` opens the recent request history
 
 **from a RESPONSE buffer**
