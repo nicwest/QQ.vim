@@ -3,9 +3,9 @@
 " Init: {{{1
 " Loaded Vars {{{2
 " ==========
-if exists('g:QQ_loaded')
-  finish
-endif
+"if exists('g:QQ_loaded')
+"  finish
+"endif
 
 "other wise mark that it is loaded
 let g:QQ_loaded = 1
@@ -82,7 +82,9 @@ endfunction
 function! s:base64encode(str) abort
   "base64 encoder stolen from vimstuff
   "TODO: implement this in vimscript like a boss
-  return system("echo -n '".shellescape(a:str)."' | base64")[:-2]
+  let tempname = tempname()
+  call writefile([a:str], tempname, 'b')
+  return system("base64 ".tempname)[:-2]
 endfunction
 
 " Boolean Functions {{{2
@@ -255,14 +257,11 @@ function! s:save_query (query) abort
   "save query
   let filename=resolve(expand(g:QQ_current_collection))
   if filereadable(filename)
-    "TODO: needs to be cross platform, does windows have cat?
-    let contents=system('cat '.filename)
+    let queries=readfile(filename)
   else
-    "TODO: needs to be cross platform, does windows have touch?
-    call system('touch '.filename)
-    let contents=""
+    call writefile([], filename)
+    let queries = []
   endif
-  let queries=split(contents, "\\n")
   let in_previous_queries = index(queries, a:query)
   if in_previous_queries > -1
     call remove(queries, in_previous_queries)
@@ -476,7 +475,7 @@ function! s:open_history(collection, buffer) abort
     call s:focus_window_with_name(g:QQ_buffer_prefix.'HISTORY')
   endif
   abc <buffer>
-  let b:queries=split(system('cat '.expand(a:collection)), "\\n")
+  let b:queries=readfile(expand(a:collection))
   setl ma
   setl noswf nonu nobl nowrap nolist nospell nocuc wfh
   setl fdc=0 fdl=99 tw=0 bt=nofile bh=unload
@@ -550,7 +549,7 @@ endfunction
 function! s:open_collection_list(collection_list) abort
   "opens collection list
   if !filereadable(expand(a:collection_list))
-    call system('echo "[QQ DEFAULT COLLECTION] '.g:QQ_default_collection.'" > '.expand(a:collection_list))
+    call writefile(['[QQ DEFAULT COLLECTION] '.g:QQ_default_collection], expand(a:collection_list))
   endif
 
   if !bufexists(g:QQ_buffer_prefix.'COLLECTIONS') && bufwinnr(g:QQ_buffer_prefix.'HISTORY') == -1
@@ -571,7 +570,7 @@ function! s:open_collection_list(collection_list) abort
     call s:focus_window_with_name(g:QQ_buffer_prefix.'COLLECTIONS')
   endif
   abc <buffer>
-  let b:collections=split(system('cat '.expand(a:collection_list)), "\\n")
+  let b:collections=readfile(expand(a:collection_list))
   setl ma
   setl noswf nonu nobl nowrap nolist nospell nocuc wfh
   setl fdc=0 fdl=99 tw=0 bt=nofile bh=unload
@@ -594,7 +593,7 @@ function! s:add_collection(path, name, collection_list) abort
     throw "target directory doesn't exist:" directory
   endif
   let line = "[".a:name."] ".a:path
-  let collection_list = split(system('cat '.expand(a:collection_list)), '\n') 
+  let collection_list = readfile(expand(a:collection_list))
   let collection_files = [] + collection_list
   call map(collection_files, "fnamemodify(matchstr(v:val, '^\\(\\[.*\\]\\s*\\)\\?\\zs.\\+\\ze$'), ':p')")
   let list_index = index(collection_files, path) 
