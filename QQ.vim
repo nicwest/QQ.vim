@@ -123,9 +123,9 @@ function! s:QQ_request_syntax() abort
   unlet b:current_syntax
   let b:current_syntax = "QQ"
   syn match QQArg "^[a-zA-Z-]\+:"
-  syn match QQUrlParam ":[a-zA-Z\-_]\+:" contained
-  syn match QQUrl "\S\+:\/\/\S\+" contains=QQUrlParam
-  syn match QQArgParam "^[a-zA-Z-]\+:\s\+:[^/:]\+:" contains=QQArg,QQUrlParam
+  syn match QQUrlVar ":[a-zA-Z\-_]\+:" contained
+  syn match QQUrl "\S\+:\/\/\S\+" contains=QQUrlVar
+  syn match QQArgVar "^[a-zA-Z-]\+:\s\+:[^/:]\+:" contains=QQArg,QQUrlVar
   syn keyword QQMethods GET POST PUT DELETE OPTIONS HEAD TRACE CONNECT PATCH
   syn keyword QQResponseInformational 100 101
   syn keyword QQResponseSuccess 200 201 202 203 204 205 206
@@ -135,7 +135,7 @@ function! s:QQ_request_syntax() abort
   syn region QQHeaderFold start="^[A-Z]\+\/[0-9\.]\+\s\+[0-9]\+\s\+[A-Z]\+.*" end="\n\n" fold keepend contains=QQArg,QQResponseSuccess,QQResponseInformational,QQResponseRedirection,QQResponseClientError,QQResponseServerError
   syn region QQResponseTimeFold start="^RESPONSE\sTIME: [0-9\.]\+$" end="\n\n" fold keepend contains=QQArg
   hi def link QQArg Constant
-  hi def link QQUrlParam String
+  hi def link QQUrlVar String
   hi def link QQMethods Keyword
   hi QQResponseInformational ctermbg=NONE ctermfg=7
   hi QQResponseSuccess ctermbg=NONE ctermfg=10
@@ -285,7 +285,7 @@ function! s:prefill_buffer(...) abort
     let s:last_request = {
           \ "URL": ["http://localhost:8000"], 
           \ "METHOD": ["GET"], 
-          \ "URL-PARAM": [["testparam", "users"]], 
+          \ "URL-VAR": [["testvar", "users"]], 
           \ "HEADER": [["Cache-Control", "no-cache"]], 
           \ "DATA": [],
           \ "DATA-FILE": [],
@@ -391,8 +391,8 @@ function! s:exec_curl(request_buffer) abort
     let curl_str.=" -H \"".s:strip(header[0]).":".s:strip(header[1])."\""
   endfor
   let sub_url = substitute(url, '\([{}]\)', '\\\1', "g")
-  for param in get(request, "URL-PARAM", [])
-    let sub_url=substitute(sub_url, ":".s:strip(param[0]).":", s:strip(param[1]), "g")
+  for var in get(request, "URL-VAR", [])
+    let sub_url=substitute(sub_url, ":".s:strip(var[0]).":", s:strip(var[1]), "g")
   endfor
   let b:response = system(curl_str." ".shellescape(sub_url))
   call s:save_query(curl_str." ".url)
@@ -506,7 +506,7 @@ function! s:convert_query(query) abort
   let request={
         \ "URL": [],
         \ "METHOD": [],
-        \ "URL-PARAM": [],
+        \ "URL-VAR": [],
         \ "HEADER": [],
         \ "DATA": [],
         \ "DATA-FILE": [],
