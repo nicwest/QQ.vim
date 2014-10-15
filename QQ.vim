@@ -218,7 +218,8 @@ function! s:focus_request_buffer()
     "request buffer exists and is in window
     call s:focus_window_with_name(g:QQ_buffer_prefix.'REQUEST')
   endif
-  nnoremap <buffer> QBA :call QQ#basic_auth()<CR>
+  nnoremap <buffer> QAB :call QQ#basic_auth()<CR>
+  nnoremap <buffer> QAO :call QQ#oauth2()<CR>
   nnoremap <buffer> QP :call QQ#add_option('pretty-print')<CR>
   call s:setup_request_buffer()
 endfunction
@@ -323,15 +324,6 @@ function! QQ#send_request(...) abort
   "converts buffer to request array and executes it
   call s:convert_buffer(bufnr(""))
   call s:exec_curl(bufnr(""))
-endfunction
-
-function! QQ#basic_auth() abort
-  "adds basic auth header via prompt to request buffer
-  "TODO: swap to request buffer
-  let user = input("User: ")
-  let password = inputsecret("Password: ")
-  let auth_string = s:base64encode(user.":".password)
-  call append(line("$"), ["HEADER: :Authorization: Basic ".auth_string])
 endfunction
 
 function! QQ#add_option(option_name) abort
@@ -445,8 +437,9 @@ function! s:show_response(response_buffer, options, ...) abort
     call append(0, "--NO RESPONSE--")
   else
     if index(a:options, "pretty-print") > -1
-      let decoded_body = system("echo " . shellescape(split_response[1]) .
-            \  " | python -m json.tool")
+      let temp_file = tempname()
+      call writefile(split(split_response[1], "\n"), temp_file)
+      let decoded_body = system("python -m json.tool ".temp_file)
       let body =  split(decoded_body, '\n')
     else
       let body = split(substitute(split_response[1], "\\r\\n", '\n', "g"), '\n')
@@ -697,8 +690,67 @@ function! QQ#collection_to_history()
   call s:open_history(collection, bufnr(""))
 endfunction
 
-" ---------------------------------------------------------------------
+" Auth {{{2
+" ====
 
+" basic auth {{{3
+" ----------
+function! s:basic_auth() abort
+  "adds basic auth header via prompt to request buffer
+  "TODO: swap to request buffer
+  let user = input("User: ")
+  let password = inputsecret("Password: ")
+  let auth_string = s:base64encode(user.":".password)
+  call append(line("$"), ["HEADER: :Authorization: Basic ".auth_string])
+endfunction
+
+" oauth2 {{{3
+" ------
+function! s:oauth2_authorisation() abort
+  let auth_url = input('Authorisation Url: ', 'https://')
+  let auth_token_url = input('Authorisation Token Url: ', 'https://')
+  let client_id = input('Client ID (Key): ')
+  let client_secret = input('Client Secret: ')
+  let state = input('State (Optional): ', 'foobar')
+  let scope = input('Scope (Optional): ')
+  let redirect_url = input('Redirect URL: ', 'http://localhost:8123')
+
+  let auth_params = "?response_type=code&client_id=".client_id
+  let auth_params .= "&redirect_uri=".redirect_url
+  let auth_params .= "&state=".state
+  "TODO: add optional other bits here
+
+  let server_path = expand('<sfile>:p:h')."/authserver.py"
+  call system("python -m webbrowser -t '".auth_url.auth_params."'")
+  let auth_response = system("python ".server_path)
+  let auth_code = matchstr(auth_response, 'code=\zs[^&]\+\ze')
+  "TODO: check state
+  
+  let auth_token_params = "?grant_type=authorization_code"
+  let auth_token_params .= "&code=".auth_code
+  let auth_token_params .= "&client_id=".client_id
+  let auth_token_params .= "&client_secret=".client_secret
+  let auth_token_params .= "&redirect_uri=".redirect_url
+
+  let access_token_response = system(g:QQ_curl_executable.' -s -X POST "'.auth_token_url.auth_token_params.'"')
+  "TODO: check for errors
+  let access_token = matchstr(access_token_response, '"access_token":"\zs[^"]\+\ze"')
+
+  call append(line("$"), ["HEADER: :Authorization: Bearer ".access_token])
+endfunction
+
+" Exposed {{{3
+" -------
+
+function! QQ#basic_auth() abort
+  call s:basic_auth()
+endfunction
+
+function! QQ#oauth2() abort
+  call s:oauth2_authorisation()
+endfunction
+
+" ---------------------------------------------------------------------
 
 " Key Bindings {{{1
 " ==========
