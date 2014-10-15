@@ -286,6 +286,7 @@ function! s:prefill_buffer(...) abort
           \ "URL": ["http://localhost:8000"], 
           \ "METHOD": ["GET"], 
           \ "URL-VAR": [["testvar", "users"]], 
+          \ "URL-PARAM": [["testparam", "test"]],
           \ "HEADER": [["Cache-Control", "no-cache"]], 
           \ "DATA": [],
           \ "DATA-FILE": [],
@@ -389,6 +390,16 @@ function! s:exec_curl(request_buffer) abort
   endif
   for header in get(request, "HEADER", [])
     let curl_str.=" -H \"".s:strip(header[0]).":".s:strip(header[1])."\""
+  endfor
+  let first_param = 1
+  for param in get(request, "URL-PARAM", [])
+    if first_param
+      let url .= "?"
+      let first_param = 0
+    else
+      let url .= "&"
+    endif
+    let url .= param[0]."=".param[1]
   endfor
   let sub_url = substitute(url, '\([{}]\)', '\\\1', "g")
   for var in get(request, "URL-VAR", [])
@@ -507,13 +518,24 @@ function! s:convert_query(query) abort
         \ "URL": [],
         \ "METHOD": [],
         \ "URL-VAR": [],
+        \ "URL-PARAM": [],
         \ "HEADER": [],
         \ "DATA": [],
         \ "DATA-FILE": [],
         \ "BODY": [],
         \ "OPTION": [],
         \}
-  call add(request['URL'], matchstr(a:query, '\s\zs[a-zA-Z]\+:\/\/.*\ze$'))
+  let url = matchstr(a:query, '\s\zs[a-zA-Z]\+:\/\/.*\ze$')
+  let param_split = split(url, '?')
+  if len(param_split) > 1
+    let url = param_split[0]
+    let params = split(join(param_split[1:]), '&')
+    let param_name_matcher = '^\zs.\+\ze='
+    let param_value_matcher = '=\zs.\+\ze$'
+    call map(params, '[matchstr(v:val, param_name_matcher), matchstr(v:val, param_value_matcher)]')
+    let request['URL-PARAM'] =  params
+  endif
+  call add(request['URL'], url)
   call add(request['METHOD'], matchstr(a:query, '-X\s\zs.\{-}\ze\s'))
   let request['HEADER'] = map(s:matchstrmultiple(a:query, '-H\s\([''"]\)\zs.\{-}\ze\1'), 'split(v:val, ":")')
   let data_or_form = matchstr(a:query, '--\(data\|form\)\s\([''"]\)\zs.\{-}\ze\2')
