@@ -384,6 +384,9 @@ function! s:exec_curl(request_buffer) abort
       else
         let curl_str .= '&'
       endif
+      if !filereadable(expand(s:strip(data_file[1])))
+        echoerr "File not readable:" s:strip(data_file[1]) 
+      endif
       let curl_str .= s:strip(data_file[0]).'=@'.s:strip(data_file[1])
     endfor
     let curl_str .= '"'
