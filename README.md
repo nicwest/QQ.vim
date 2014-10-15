@@ -34,6 +34,11 @@ present in the URL with the specified `<url variable value>`. Only the name of
 the variable is stored in the history this should be useful for sensitive
 information.
 
+`URL-PARAM: :<url parameter name>: <url parameter value>`
+
+URL parameter, this option will add GET parameters to a URL, e.g. 
+`:test: foobar` will append `?test=foobar` to the end of the given URL
+
 `METHOD: <method>`
  
 Request method, any method should be acceptable here but may be limited by your
@@ -103,6 +108,7 @@ Body, at the moment this does nothing :)
 METHOD:	POST
 URL:	http://example.com/:test-var:/upload
 URL-VAR: :test-var: supersecretkey
+URL-PARAM: :format: json
 HEADER:	:Cache-Control: no-cache
 OPTION:	:pretty-print: True
 OPTION:	:follow: True
