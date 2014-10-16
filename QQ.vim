@@ -80,11 +80,54 @@ function! s:matchstrmultiple(str, expr) abort
 endfunction
 
 function! s:base64encode(str) abort
-  "base64 encoder stolen from vimstuff
-  "TODO: implement this in vimscript like a boss
-  let tempname = tempname()
-  call writefile([a:str], tempname, 'b')
-  return system("base64 ".tempname)[:-2]
+  "TODO: refactor this madness
+  let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  let chars .= "abcdefghijklmnopqrstuvwxyz"
+  let chars .= "0123456789"
+  let chars .= "+/"
+
+  let char_list = split(chars, '\ze')
+
+  let out = ""
+  let input_list = split(a:str, '\ze')
+  let bin_stack = []
+  while len(input_list)
+    let block = input_list[:2]
+    let input_list = input_list[3:]
+    let block_out = ""
+    let padding = ""
+    while len(block) < 3
+      call add(block, '')
+      let padding = padding."="
+    endwhile
+    while len(block)
+      let bin_char = []
+      let nr = char2nr(block[0])
+      while len(bin_char) < 8
+        let result = nr/2.0
+        let nr = floor(result)
+        call insert(bin_char, result != nr, 0)
+      endwhile
+      let block = block[1:]
+      let bin_stack = bin_stack + bin_char
+      while len(bin_stack) > 5
+        let char_bin = bin_stack[:5]
+        let char_index = 0
+        while len(char_bin) > 0
+          let char_index = (char_index * 2) + char_bin[0] 
+          let char_bin = char_bin[1:]
+        endwhile
+        let block_out .= char_list[char_index]
+        let bin_stack = bin_stack[6:]
+      endwhile
+    endwhile
+    if len(padding)
+      let out .= join(split(block_out, '\ze')[:3-len(padding)], '').padding
+    else
+      let out .= block_out
+    endif
+  endwhile
+  return out
 endfunction
 
 " Boolean Functions {{{2
