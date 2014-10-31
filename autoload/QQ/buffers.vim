@@ -8,7 +8,7 @@ function! QQ#buffers#import() abort
 endfunction
 
 let s:B = {}
-" Buffers : {{{1
+" names : {{{1
 let s:B.request = g:QQ_buffer_prefix.'REQUEST'
 let s:B.response = g:QQ_buffer_prefix.'RESPONSE'
 let s:B.history = g:QQ_buffer_prefix.'HISTORY'

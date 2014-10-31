@@ -1,8 +1,4 @@
 " Importer : {{{1
-function! s:SID()
-    return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
-endfunction
-
 function! QQ#regexp#import() abort
   return copy(s:R)
 endfunction

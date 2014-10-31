@@ -1,41 +1,18 @@
-function! QQ#utils#import()
-    let prefix = '<SNR>' . s:SID() . '_'
-    let module = {}
-    for func in s:functions
-        let module[func] = function(prefix . func)
-    endfor
-    return copy(module)
-endfunction
-
-function! s:SID()
-    return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
-endfunction
-
-let s:functions = [
-\   'strip_name',
-\   'strip',
-\   'matchstr_multiple',
-\   'base64encode',
-\   'falsey',
-\   'truthy',
-\   'focus_window_with_name',
-\ ]
-
 let s:R = QQ#regexp#import()
 
-" String Functions : {{{1
+" String Functions: {{{1
 " ===============
-function! s:strip_name(input_string)
+function! QQ#utils#strip_name(input_string)
   "turns ":{key}:" into "{key}"
   return substitute(a:input_string, s:R.strip_name, '\1', '')
 endfunction
 
-function! s:strip(input_string) abort
+function! QQ#utils#strip(input_string) abort
   "removes white space at the beginning and end of string
   return substitute(a:input_string, s:R.strip, '\1', '')
 endfunction
 
-function! s:matchstr_multiple(str, expr) abort
+function! QQ#utils#matchstr_multiple(str, expr) abort
   "extract repeated expression from str
   let itemcount = 1
   let items = []
@@ -46,7 +23,7 @@ function! s:matchstr_multiple(str, expr) abort
   return items
 endfunction
 
-function! s:base64encode(str) abort
+function! QQ#utils#base64encode(str) abort
   "TODO: refactor this madness
   let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
   let chars .= "abcdefghijklmnopqrstuvwxyz"
@@ -97,8 +74,8 @@ function! s:base64encode(str) abort
   return out
 endfunction
 
-" Boolean Functions : {{{1
-function! s:falsey(input_string)
+" Boolean Functions: {{{1
+function! QQ#utils#falsey(input_string)
   "if string is 0, false, or no it is falsey (normally this would include nil
   "values or empty stings, but for the moment I think these will be synonymous
   "with setting true in the context of "OPTION: :{key}: {value}", might change
@@ -110,16 +87,24 @@ function! s:falsey(input_string)
   endif
 endfunction
 
-function! s:truthy(input_string)
+function! QQ#utils#truthy(input_string)
   "if it's not falsey then it's truthy
-  return 1 - s:falsey(a:input_string)
+  return 1 - QQ#utils#falsey(a:input_string)
 endfunction
 
-" Window Functions : {{{1
-function! s:focus_window_with_name(window) abort
+" Window Functions: {{{1
+function! QQ#utils#focus_window_with_name(window) abort
   "focuses open window with loaded buffer name active
   exe 'norm'.bufwinnr(a:window).'w'
 endfunction
 
+" Buffer Functions: {{{1
+function! QQ#utils#create_buffer(name, ...) abort
+  let dimension = exists('a:1') ? a:1 : ''
+  let direction = exists('a:2') ? a:2 : ''
+  sil! exe 'keepa bo '.dimension.direction.'new' name
+endfunction
+
 " Misc : {{{1
+" vim: expandtab ts=2 sts=2 sw=2
 " vim:fdm=marker
