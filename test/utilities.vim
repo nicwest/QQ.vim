@@ -1,5 +1,6 @@
 let s:suite = themis#suite('utilities')
 let s:assert = themis#helper('assert')
+call themis#helper('command')
 
 "Strings: {{{1
 function! s:suite.strip_name()
@@ -85,6 +86,11 @@ function! s:suite.focus_window_with_name()
   call s:assert.equals(expand('%'), 'second') 
   call QQ#utils#focus_window_with_name('first')
   call s:assert.equals(expand('%'), 'first') 
+endfunction
+
+function! s:suite.raise_error()
+  Throws /TEST ERROR: something broke :(/ 
+        \ :call QQ#utils#error('TEST', 'something broke :(')
 endfunction
 
 " vim: expandtab ts=2 sts=2 sw=2
