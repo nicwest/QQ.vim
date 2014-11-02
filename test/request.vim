@@ -1,4 +1,4 @@
-let s:suite = themis#suite('buffers')
+let s:suite = themis#suite('request')
 let s:assert = themis#helper('assert')
 
 " Test Setup: {{{1
@@ -134,7 +134,7 @@ function! s:suite.open_buffer_created_populates_with_query()
   call s:assert.equals(l:buffer_text, s:test_request)
 endfunction
 
-" Setup {{{1
+" Setup: {{{1
 function! s:suite.setup_settings()
   exe 'new' s:B.request
   call QQ#request#setup()

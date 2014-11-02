@@ -113,6 +113,14 @@ function! QQ#request#populate(...)  abort
   normal! Gddgg
 endfunction
 
+" Execute: {{{1
+
+function! QQ#request#execute(query) abort
+  let b:response = system(curl_str." ".shellescape(sub_url))
+  call s:save_query(curl_str." ".url)
+  call s:show_response(bufnr(""), options)
+endfunction
+
 " Send: {{{1
 
 function! QQ#request#send() abort
