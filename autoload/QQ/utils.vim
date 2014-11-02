@@ -110,6 +110,9 @@ function! QQ#utils#error(type, message)
   throw a:type." ERROR: ".a:message
 endfunction
 
+function! QQ#utils#warning(type, message)
+  echohl WarningMsg | echomsg a:type." WARNING: ".a:message | echohl None
+endfunction
 " Misc : {{{1
 " vim: expandtab ts=2 sts=2 sw=2
 " vim:fdm=marker

@@ -88,10 +88,17 @@ function! s:suite.focus_window_with_name()
   call s:assert.equals(expand('%'), 'first') 
 endfunction
 
+" Errors: {{{1
+
 function! s:suite.raise_error()
-  Throws /TEST ERROR: something broke :(/ 
-        \ :call QQ#utils#error('TEST', 'something broke :(')
+  Throws /TEST ERROR: something broke/ 
+        \ :call QQ#utils#error('TEST', 'something broke')
 endfunction
 
+function! s:suite.display_warning()
+  call QQ#utils#warning('TEST', 'something is vaguely broken')
+endfunction
+
+" Misc: {{{1
 " vim: expandtab ts=2 sts=2 sw=2
 " vim:fdm=marker
