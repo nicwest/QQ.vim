@@ -1,7 +1,7 @@
 let s:suite = themis#suite('response')
 let s:assert = themis#helper('assert')
 " Test Setup: {{{1
-let s:themis_buffers = filter(range(1, bufnr('$')), 'bufexists(v:val)')"{{{
+let s:themis_buffers = filter(range(1, bufnr('$')), 'bufexists(v:val)')
 function! s:buflist ()
   return map(filter(filter(range(1, bufnr('$')), 'index(s:themis_buffers, v:val) < 0'), 'bufexists(v:val)'), 'bufname(v:val)')
 endfunction
@@ -24,47 +24,18 @@ function! AddLines(lines)
   endfor
 endfunction
 
-let s:B = QQ#buffers#import()"}}}
-let s:test_request = [
-      \ "METHOD:\tGET",
-      \ "URL:\thttps://www.googleapis.com/urlshortener/v1/url",
-      \ "URL-PARAM:\t:shortUrl: :url:",
-      \ "URL-PARAM:\t:key: :api-key:",
-      \ "URL-VAR:\t:url: https://weareleto.com",
-      \ "URL-VAR:\t:api-key: 123123",
-      \ "HEADER:\t:Cache-Control: no-cache",
-      \ "OPTION:\t:pretty-print: True",
-      \]
+let s:B = QQ#buffers#import()
 
-let s:test_query = {
-      \ 'METHOD': ['GET'],
-      \ 'URL': ['https://www.googleapis.com/urlshortener/v1/url'],
-      \ 'URL-VAR': [['url', 'https://weareleto.com'], ['api-key', '123123']],
-      \ 'URL-PARAM': [['shortUrl', ':url:'], ['key', ':api-key:']],
-      \ 'HEADER': [['Cache-Control', 'no-cache']],
-      \ 'OPTION': [['pretty-print', 'True']]
-      \}
-
-let s:default_request =  [
-      \ "METHOD:\tGET", 
-      \ "URL:\thttp://localhost:8000", 
-      \ "URL-PARAM:\t:testparam: test",
-      \ "URL-VAR:\t:testvar: users", 
-      \ "HEADER:\t:Cache-Control: no-cache", 
-      \ "OPTION:\t:pretty-print: True"
-      \ ]
-
-let s:default_query =  {
-      \ "URL": ["http://localhost:8000"], 
-      \ "METHOD": ["GET"], 
-      \ "URL-VAR": [["testvar", "users"]], 
-      \ "URL-PARAM": [["testparam", "test"]],
-      \ "HEADER": [["Cache-Control", "no-cache"]], 
-      \ "DATA": [],
-      \ "DATA-FILE": [],
-      \ "BODY": [],
-      \ "OPTION": [["pretty-print", "True"]]
-      \ }
+let s:test_headers = "HTTP/1.1 302 Moved Temporarily\r\nCache-Control: private\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: 259\r\nDate: Tue, 04 Nov 2014 10:01:17 GMT\r\nServer: GFE/2.0\r\nAlternate-Protocol: 80:quic,p=0.01\r\nConnection: keep-alive"
+let s:test_body = '{"test": "lol", "trololol": [1, 2, 3], "pie": true}'
+let s:test_times = "\r\n1\r\n2\r\n3\r\n4\r\n5\r\n6\r\n7"
+let s:test_response = s:test_headers . "\r\n\r\n" . s:test_body . s:test_times
+let s:test_options = ['pretty-print']
+let s:test_time = {'response': 7, 'name_lookup': 1, 'connect': 2, 'app_connect': 3, 'pre_transfer': 4, 'redirects': 5, 'start_transfer': 6}
+let s:test_headers_output = ['HTTP/1.1 302 Moved Temporarily', 'Cache-Control: private', 'Content-Type: text/html; charset=UTF-8', 'Content-Length: 259', 'Date: Tue, 04 Nov 2014 10:01:17 GMT', 'Server: GFE/2.0', 'Alternate-Protocol: 80:quic,p=0.01', 'Connection: keep-alive', '']
+let s:test_time_output = ['RESPONSE TIME: 7', 'Name-Lookup: 1', 'Connect: 2', 'App-Connect: 3', 'Pre-Transfer: 4', 'Redirects: 5', 'Start-Transfer: 6', ''] 
+let s:test_body_output = ['{"test": "lol", "trololol": [1, 2, 3], "pie": true}']
+let s:test_response_output = s:test_headers_output + s:test_time_output + s:test_body_output
 
 " Open: {{{1
 function! s:suite.open_creates_new_buffer()
@@ -122,14 +93,21 @@ function! s:suite.open_buffer_created_populates_with_default()
   call s:assert.false(bufexists(s:B.response))
   call QQ#response#open()
   let l:buffer_text = getbufline(bufnr(s:B.response), 0, '$')
-  call s:assert.equals(l:buffer_text, [''])
+  call s:assert.equals(l:buffer_text, ['--NO RESPONSE--'])
 endfunction
 
-function! s:suite.open_buffer_created_populates_with_query()
+function! s:suite.open_buffer_created_populates_with_response()
   call s:assert.false(bufexists(s:B.response))
-  call QQ#response#open(s:test_query)
+  call QQ#response#open(s:test_response)
   let l:buffer_text = getbufline(bufnr(s:B.response), 0, '$')
-  call s:assert.equals(l:buffer_text, [''])
+  call s:assert.equals(l:buffer_text, ['--NO RESPONSE--'])
+endfunction
+
+function! s:suite.open_buffer_created_populates_with_response_and_options()
+  call s:assert.false(bufexists(s:B.response))
+  call QQ#response#open(s:test_response, s:test_options)
+  let l:buffer_text = getbufline(bufnr(s:B.response), 0, '$')
+  call s:assert.equals(l:buffer_text, ['--NO RESPONSE--'])
 endfunction
 
 " Setup: {{{1
@@ -155,6 +133,62 @@ function! s:suite.setup_settings()
   endif
 endfunction
 
+" Populate: {{{1
+
+function! s:suite.split_response()
+  let [l:headers, l:body, l:time] = QQ#response#split_response(s:test_response)
+  call s:assert.equals(l:time.name_lookup, 1)
+  call s:assert.equals(l:time.connect, 2)
+  call s:assert.equals(l:time.app_connect, 3)
+  call s:assert.equals(l:time.pre_transfer, 4)
+  call s:assert.equals(l:time.redirects, 5)
+  call s:assert.equals(l:time.start_transfer, 6)
+  call s:assert.equals(l:time.response, 7)
+  call s:assert.equals(l:headers, s:test_headers)
+  call s:assert.equals(l:body, s:test_body)
+endfunction
+
+function! s:suite.format_time()
+  let l:timeblock = QQ#response#format_time(s:test_time)
+  let l:timelines = split(l:timeblock, '\r\n')
+  call s:assert.equals(l:timelines[0], 'RESPONSE TIME: 7')
+  call s:assert.equals(l:timelines[1], 'Name-Lookup: 1')
+  call s:assert.equals(l:timelines[2], 'Connect: 2')
+  call s:assert.equals(l:timelines[3], 'App-Connect: 3')
+  call s:assert.equals(l:timelines[4], 'Pre-Transfer: 4')
+  call s:assert.equals(l:timelines[5], 'Redirects: 5')
+  call s:assert.equals(l:timelines[6], 'Start-Transfer: 6')
+endfunction
+
+function! s:suite.populate_with_response()
+  exe 'new' s:B.response 
+  call QQ#response#populate(s:test_response, [])
+  let l:buffer_text = getbufline(bufnr(s:B.response), 0, '$')
+  call s:assert.equals(l:buffer_text, s:test_response_output)
+endfunction
+
+function! s:suite.populate_with_no_response()
+  exe 'new' s:B.response 
+  call QQ#response#populate('', [])
+  let l:buffer_text = getbufline(bufnr(s:B.response), 0, '$')
+  call s:assert.equals(l:buffer_text, ['--NO RESPONSE--'])
+endfunction
+
+function! s:suite.populate_with_no_response_body()
+  exe 'new' s:B.response 
+  call QQ#response#populate(s:test_headers . s:test_times, [])
+  let l:buffer_text = getbufline(bufnr(s:B.response), 0, '$')
+  call s:assert.equals(l:buffer_text, s:test_headers_output + s:test_time_output)
+endfunction
+
+function! s:suite.populate_with_response_and_pretty_print()
+  exe 'new' s:B.response 
+  call QQ#response#populate(s:test_response, ['pretty-print'])
+  let l:buffer_text = getbufline(bufnr(s:B.response), 0, '$')
+  call s:assert.equals(l:buffer_text, s:test_headers_output + s:test_time_output
+        \ + ['{', '    "pie": true,', '    "test": "lol",', '    "trololol": [',
+        \ '        1,', '        2,', '        3', '    ]','}'])
+endfunction
 
 
 " Misc: {{{1

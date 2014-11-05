@@ -49,8 +49,10 @@ function! QQ#response#open(...) abort
   call QQ#response#map_keys()
   call QQ#response#setup()
   if l:buffer_created
-    let response = a:0 ? a:1 : s:last_response 
-    call QQ#response#populate(response)
+    let l:response = a:0 ? a:1 : s:last_response 
+    let l:options = a:0 > 1 ? a:2 : []
+    call QQ#response#populate('test', [])
+    "call QQ#response#populate(l:response, l:options)
   endif
 endfunction
 
@@ -66,9 +68,62 @@ function! QQ#response#setup() abort
 endfunction
 
 " Populate: {{{1
+function! QQ#response#split_response(response) abort
+  let l:lines = split(a:response, "\\r\\n")
+  if len(l:lines) > 6
+    let l:times = lines[-7:]
+    let l:time = {}
+    let l:time.response = times[6]
+    let l:time.name_lookup = times[0]
+    let l:time.connect = times[1]
+    let l:time.app_connect = times[2]
+    let l:time.pre_transfer = times[3]
+    let l:time.redirects = times[4]
+    let l:time.start_transfer = times[5]
+    let l:response = join(lines[:-8], "\r\n")
+    let l:split_response = split(response, s:R.response_header)
+    if len(split_response) > 1
+      return [l:split_response[0], l:split_response[1], l:time]
+    elseif len(l:split_response)
+      return [l:split_response[0], '', l:time]
+    else
+      return ['', '', l:time]
+    endif
+  else
+    return ['', '', '']
+  endif
+endfunction
 
-function! QQ#response#populate(...) abort
+function! QQ#response#format_time(time) abort
+  let l:timeblock = "RESPONSE TIME: " . a:time.response . "\r\n"
+  let l:timeblock .= "Name-Lookup: " . a:time.name_lookup. "\r\n"
+  let l:timeblock .= "Connect: " . a:time.connect . "\r\n"
+  let l:timeblock .= "App-Connect: " . a:time.app_connect . "\r\n"
+  let l:timeblock .= "Pre-Transfer: " . a:time.pre_transfer . "\r\n"
+  let l:timeblock .= "Redirects: " . a:time.redirects . "\r\n"
+  let l:timeblock .= "Start-Transfer: " . a:time.start_transfer
+  return l:timeblock
+endfunction
 
+function! QQ#response#populate(response, options) abort
+  let [l:headers, l:body, l:time] = QQ#response#split_response(a:response)
+  normal! gg"_dG
+  if !len(l:headers)
+    call append(0, '--NO RESPONSE--')
+  else
+    if index(a:options, 'pretty-print') != -1
+      let l:tmpfn = tempname()
+      call writefile(split(l:body, "\n"), l:tmpfn)
+      let l:ppbody = system('python -m json.tool '.l:tmpfn)
+      let l:body_split = split(l:ppbody, '\n')
+    else
+      let l:body_split = split(substitute(l:body, '\r\n', '\n', 'g'), '\n')
+    endif
+    let l:timeblock = QQ#response#format_time(l:time)
+    let l:response = l:headers . "\r\n\r\n" . l:timeblock . "\r\n\r\n"
+    call append(0, split(l:response, "\r\n") + l:body_split)
+  endif
+  normal! Gddgg
 endfunction
 
 " Mapping: {{{1
