@@ -190,6 +190,14 @@ function! s:suite.populate_with_response_and_pretty_print()
         \ '        1,', '        2,', '        3', '    ]','}'])
 endfunction
 
+" Mapping: {{{1
+
+function! s:suite.map_keys()
+  call QQ#response#map_keys()
+  call s:assert.equals(maparg('q', 'n'), ':call QQ#utils#close_window()<CR>')
+endfunction
+
+  
 
 " Misc: {{{1
 " vim:fdm=marker

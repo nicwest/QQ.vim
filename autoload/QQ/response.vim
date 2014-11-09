@@ -128,7 +128,7 @@ endfunction
 
 " Mapping: {{{1
 function! QQ#response#map_keys() abort
-
+  map <buffer> q :call QQ#utils#close_window()<CR>
 endfunction
 
 " Misc: {{{1
