@@ -1,4 +1,4 @@
-let s:suite = themis#suite('utilities')
+let s:suite = themis#suite('utils')
 let s:assert = themis#helper('assert')
 call themis#helper('command')
 

@@ -51,8 +51,7 @@ function! QQ#response#open(...) abort
   if l:buffer_created
     let l:response = a:0 ? a:1 : s:last_response 
     let l:options = a:0 > 1 ? a:2 : []
-    call QQ#response#populate('test', [])
-    "call QQ#response#populate(l:response, l:options)
+    call QQ#response#populate(l:response, l:options)
   endif
 endfunction
 

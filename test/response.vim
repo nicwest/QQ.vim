@@ -35,7 +35,9 @@ let s:test_time = {'response': 7, 'name_lookup': 1, 'connect': 2, 'app_connect':
 let s:test_headers_output = ['HTTP/1.1 302 Moved Temporarily', 'Cache-Control: private', 'Content-Type: text/html; charset=UTF-8', 'Content-Length: 259', 'Date: Tue, 04 Nov 2014 10:01:17 GMT', 'Server: GFE/2.0', 'Alternate-Protocol: 80:quic,p=0.01', 'Connection: keep-alive', '']
 let s:test_time_output = ['RESPONSE TIME: 7', 'Name-Lookup: 1', 'Connect: 2', 'App-Connect: 3', 'Pre-Transfer: 4', 'Redirects: 5', 'Start-Transfer: 6', ''] 
 let s:test_body_output = ['{"test": "lol", "trololol": [1, 2, 3], "pie": true}']
+let s:test_body_output_pretty = ['{', '    "pie": true,', '    "test": "lol",', '    "trololol": [', '        1,', '        2,', '        3', '    ]', '}']
 let s:test_response_output = s:test_headers_output + s:test_time_output + s:test_body_output
+let s:test_response_output_pretty = s:test_headers_output + s:test_time_output + s:test_body_output_pretty
 
 " Open: {{{1
 function! s:suite.open_creates_new_buffer()
@@ -100,14 +102,14 @@ function! s:suite.open_buffer_created_populates_with_response()
   call s:assert.false(bufexists(s:B.response))
   call QQ#response#open(s:test_response)
   let l:buffer_text = getbufline(bufnr(s:B.response), 0, '$')
-  call s:assert.equals(l:buffer_text, ['--NO RESPONSE--'])
+  call s:assert.equals(l:buffer_text, s:test_response_output)
 endfunction
 
 function! s:suite.open_buffer_created_populates_with_response_and_options()
   call s:assert.false(bufexists(s:B.response))
   call QQ#response#open(s:test_response, s:test_options)
   let l:buffer_text = getbufline(bufnr(s:B.response), 0, '$')
-  call s:assert.equals(l:buffer_text, ['--NO RESPONSE--'])
+  call s:assert.equals(l:buffer_text, s:test_response_output_pretty)
 endfunction
 
 " Setup: {{{1
@@ -185,9 +187,7 @@ function! s:suite.populate_with_response_and_pretty_print()
   exe 'new' s:B.response 
   call QQ#response#populate(s:test_response, ['pretty-print'])
   let l:buffer_text = getbufline(bufnr(s:B.response), 0, '$')
-  call s:assert.equals(l:buffer_text, s:test_headers_output + s:test_time_output
-        \ + ['{', '    "pie": true,', '    "test": "lol",', '    "trololol": [',
-        \ '        1,', '        2,', '        3', '    ]','}'])
+  call s:assert.equals(l:buffer_text, s:test_response_output_pretty)
 endfunction
 
 " Mapping: {{{1
