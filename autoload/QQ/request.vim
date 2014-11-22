@@ -126,7 +126,7 @@ endfunction
 function! QQ#request#send() abort
   let l:query = QQ#request#convert()
   let [l:args, l:options] = QQ#query#get_options(l:query)
-  let [l:response, l:query_str] = QQ#query#execute(l:query)
+  let l:response = QQ#query#execute(l:query)
   let s:last_query = l:query
   call QQ#history#save(query)
   call QQ#response#open(l:response, l:options)

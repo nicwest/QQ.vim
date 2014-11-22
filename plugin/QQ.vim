@@ -40,3 +40,5 @@ if !exists('g:QQ_buffer_prefix')
   "buffer prefix
   let g:QQ_buffer_prefix = '[QQ]'
 endif
+
+nnoremap QQ :call QQ#request#open()
