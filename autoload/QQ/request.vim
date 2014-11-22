@@ -25,19 +25,19 @@ function! QQ#request#open(...) abort
   let l:buffer_created = 0
   if and(!bufexists(s:B.request), !bufexists(s:B.response))
     "neither request or response buffer exists
-    sil! exe 'keepa bo 80vnew' s:B.request
+    sil! exe 'keepa bo 50vnew' s:B.request
     let l:buffer_created = 1
   elseif and(!bufexists(s:B.request), bufwinnr(s:B.response) != -1)
     "request buffer doesn't exist, response buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.response)
     sil! exe 'badd' s:B.request
     sil! exe 'buf' bufnr(s:B.request) 
-    sil! exe 'vert res 80'
+    sil! exe 'vert res 50'
     let l:buffer_created = 1
   elseif and(!bufexists(s:B.request), bufexists(s:B.response))
     "request buffer doesn't exist, response buffer exists but is not in window
     sil! exe 'keepa bo vert sb' s:B.response
-    sil! exe 'vert res 80'
+    sil! exe 'vert res 50'
     sil! exe 'badd' s:B.request
     sil! exe 'buf' bufnr('') 
     let l:buffer_created = 1
@@ -48,7 +48,7 @@ function! QQ#request#open(...) abort
   elseif bufwinnr(s:B.request) == -1
     "request buffer exists but is not in window
     sil! exe 'keepa bo vert sb' s:B.request
-    sil! exe 'vert res 80'
+    sil! exe 'vert res 50'
   else 
     call QQ#utils#focus_window_with_name(s:B.request)
   endif
