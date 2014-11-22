@@ -9,21 +9,23 @@ let s:last_response = ''
 function! QQ#history#open(...) abort
   "finds the HISTORY buffer where ever it may be
   let l:buffer_created = 0
+  let l:position = g:QQ_collection_window_location == 'top' ? 'to' : 'bo' 
+  let l:height = g:QQ_collection_window_height
   if and(!bufexists(s:B.history), !bufexists(s:B.collections))
     "neither collections or history buffer exists
-    sil! exe 'keepa bo 80vnew' s:B.history
+    sil! exe 'keepa' l:position l:height.'new' s:B.history
     let l:buffer_created = 1
   elseif and(!bufexists(s:B.history), bufwinnr(s:B.collections) != -1)
     "history buffer doesn't exist, collections buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.collections)
     sil! exe 'badd' s:B.history
     sil! exe 'buf' bufnr(s:B.history) 
-    sil! exe 'vert res 80'
+    sil! exe 'res' l:height
     let l:buffer_created = 1
   elseif and(!bufexists(s:B.history), bufexists(s:B.collections))
     "history buffer doesn't exist, collections buffer exists but is not in window
-    sil! exe 'keepa bo vert sb' s:B.collections
-    sil! exe 'vert res 80'
+    sil! exe 'keepa' l:position l:height.'sb' s:B.collections
+    sil! exe 'res' l:height
     sil! exe 'badd' s:B.history
     sil! exe 'buf' bufnr('') 
     let l:buffer_created = 1
@@ -38,14 +40,17 @@ function! QQ#history#open(...) abort
   else 
     call QQ#utils#focus_window_with_name(s:B.history)
   endif
-  call QQ#response#map_keys()
-  call QQ#response#setup()
-  if l:buffer_created
-    let l:response = a:0 ? a:1 : s:last_response 
-    let l:options = a:0 > 1 ? a:2 : []
-    call QQ#response#populate('test', [])
-    "call QQ#response#populate(l:response, l:options)
-  endif
+  "call QQ#response#map_keys()
+  "call QQ#response#setup()
+  let l:collection = a:0 ? a:1 : g:QQ_current_collection 
+  call QQ#history#populate(l:collection)
+endfunction
+
+" Setup: {{{1
+" Populate: {{{1
+function QQ#history#populate(collection) abort
+  call append(0, ['--NO HISTORY--'])
+  normal! Gddgg
 endfunction
 
 " Save {{{3
