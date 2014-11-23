@@ -39,25 +39,24 @@ function! QQ#request#open(...) abort
     sil! exe 'keepa bo vert sb' s:B.response
     sil! exe 'vert res 50'
     sil! exe 'badd' s:B.request
-    sil! exe 'buf' bufnr('') 
+    sil! exe 'buf' bufnr(s:B.request) 
     let l:buffer_created = 1
   elseif and(bufwinnr(s:B.request) == -1, bufwinnr(s:B.response) != -1)
     "request buffer exists, response buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.response)
     sil! exe 'buf' bufnr(s:B.request) 
+    sil! exe 'vert res 50'
   elseif bufwinnr(s:B.request) == -1
     "request buffer exists but is not in window
-    sil! exe 'keepa bo vert sb' s:B.request
+    sil! exe 'keepa bo vert sb' bufnr(s:B.request)
     sil! exe 'vert res 50'
   else 
     call QQ#utils#focus_window_with_name(s:B.request)
   endif
   call QQ#request#map_keys()
   call QQ#request#setup()
-  if l:buffer_created
-    let query = a:0 ? a:1 : s:last_query 
-    call QQ#request#populate(query)
-  endif
+  let l:query = a:0 ? a:1 : s:last_query 
+  call QQ#request#populate(l:query)
 endfunction
 
 " Setup: {{{1
@@ -68,6 +67,11 @@ function! QQ#request#setup() abort
   if v:version > 702
     setl nornu noudf cc=0
   end
+  runtime! syntax/javascript.vim
+  unlet b:current_syntax
+  let b:current_syntax = "QQ"
+  syn sync fromstart
+  set foldmethod=syntax
 endfunction
 
 " Convert: {{{1

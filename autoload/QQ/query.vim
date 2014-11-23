@@ -170,6 +170,40 @@ function! QQ#query#execute(query) abort
   return l:response
 endfunction
 
+" Convert: {{{1
+
+function! QQ#query#convert(query_str) abort
+  "TODO: refactor this
+  let l:query={
+        \ "URL": [],
+        \ "METHOD": [],
+        \ "URL-VAR": [],
+        \ "URL-PARAM": [],
+        \ "HEADER": [],
+        \ "DATA": [],
+        \ "DATA-FILE": [],
+        \ "BODY": [],
+        \ "OPTION": [],
+        \}
+  let l:url = matchstr(a:query_str, s:R.curl_url)
+  let l:param_split = split(url, '?')
+  if len(l:param_split) > 1
+    let l:url = param_split[0]
+    let l:params = split(join(param_split[1:]), '&')
+    call map(params, '[matchstr(v:val, s:R.curl_url_param_name), matchstr(v:val, s:R.curl_url_param_value)]')
+    let l:query['URL-PARAM'] = l:params
+  endif
+  call add(l:query.URL, url)
+  call add(l:query.METHOD, matchstr(a:query_str, s:R.curl_method))
+  let l:query.HEADER = map(QQ#utils#matchstr_multiple(a:query_str, s:R.curl_header), 'split(v:val, ":")')
+  let data_or_form = matchstr(a:query_str, s:R.curl_data_or_form)
+  let data_or_form_fields = map(QQ#utils#matchstr_multiple(data_or_form, s:R['curl_data_fields']), 'split(v:val, "=")')
+  let l:query.DATA = filter([] + data_or_form_fields, 'v:val[1][0] != "@"') 
+  let l:query['DATA-FILE'] = map(filter([] + data_or_form_fields, 'v:val[1][0] == "@"'), '[v:val[0], v:val[1][1:]]')
+  return l:query
+endfunction
+
+
 " Misc : {{{1
 " vim: expandtab ts=2 sts=2 sw=2
 " vim:fdm=marker

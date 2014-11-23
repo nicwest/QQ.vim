@@ -24,10 +24,10 @@ function! QQ#history#open(...) abort
     let l:buffer_created = 1
   elseif and(!bufexists(s:B.history), bufexists(s:B.collections))
     "history buffer doesn't exist, collections buffer exists but is not in window
-    sil! exe 'keepa' l:position l:height.'sb' s:B.collections
+    sil! exe 'keepa' l:position l:height.'sb' bufnr(s:B.collections)
     sil! exe 'res' l:height
     sil! exe 'badd' s:B.history
-    sil! exe 'buf' bufnr('') 
+    sil! exe 'buf' bufnr(s:B.history) 
     let l:buffer_created = 1
   elseif and(bufwinnr(s:B.history) == -1, bufwinnr(s:B.collections) != -1)
     "history buffer exists, collections buffer exists and is in window
@@ -35,46 +35,102 @@ function! QQ#history#open(...) abort
     sil! exe 'buf' bufnr(s:B.history) 
   elseif bufwinnr(s:B.history) == -1
     "history buffer exists but is not in window
-    sil! exe 'keepa bo vert sb' s:B.history
-    sil! exe 'vert res 80'
+    sil! exe 'keepa' l:position 'sb' bufnr(s:B.history)
+    sil! exe 'res' l:height
   else 
     call QQ#utils#focus_window_with_name(s:B.history)
   endif
-  "call QQ#response#map_keys()
-  "call QQ#response#setup()
+  call QQ#history#map_keys()
+  call QQ#history#setup()
   let l:collection = a:0 ? a:1 : g:QQ_current_collection 
-  call QQ#history#populate(l:collection)
+  let b:queries = QQ#history#queries(l:collection)
+  call QQ#history#populate()
 endfunction
 
 " Setup: {{{1
-" Populate: {{{1
-function QQ#history#populate(collection) abort
-  call append(0, ['--NO HISTORY--'])
-  normal! Gddgg
+function! QQ#history#setup() abort
+  set ft=QQ
+  setl noswf nonu nobl nospell nocuc wfw
+  setl fdc=0 fdl=99 tw=0 bt=nofile bh=hide
+  if v:version > 702
+    setl nornu noudf cc=0
+  end
+  runtime! syntax/javascript.vim
+  unlet b:current_syntax
+  let b:current_syntax = "QQ"
+  syn sync fromstart
+  set foldmethod=syntax
 endfunction
 
-" Save {{{3
-" ----
-function! s:save_query (query) abort
-  "save query
-  let filename=resolve(expand(g:QQ_current_collection))
-  if filereadable(filename)
-    let queries=readfile(filename)
-  else
-    call writefile([], filename)
-    let queries = []
-  endif
-  let in_previous_queries = index(queries, a:query)
-  if in_previous_queries > -1
-    call remove(queries, in_previous_queries)
-  endif
-  let queries = [a:query] + queries
-  if bufwinnr(g:QQ_buffer_prefix.'HISTORY') != -1
-    call setbufvar(bufnr(g:QQ_buffer_prefix.'HISTORY'), 'queries', queries)
-    let request_buffer=bufnr('')
-    call s:focus_window_with_name(g:QQ_buffer_prefix.'HISTORY')
-    call s:load_history_buffer()
-    call s:focus_window_with_name(request_buffer)
-  endif
-  call writefile(queries, filename)
+" Populate: {{{1
+function! QQ#history#populate() abort
+  setl ma
+  norm gg"_dG
+  let displaylist=copy(b:queries)
+  call map(displaylist, 'matchstr(v:val, s:R.curl_method) . "\t" . ' . 
+        \ 'matchstr(v:val, s:R.curl_url)')
+  call append(0, displaylist)
+  norm Gddgg
+  setl noma
 endfunction
+
+" Save: {{{1
+
+function! s:filepath() abort
+  return resolve(expand(g:QQ_current_collection))
+endfunction
+
+function! QQ#history#remove_query(queries, query)
+  let in_previous_queries = index(a:queries, a:query)
+  if in_previous_queries > -1
+    call remove(a:queries, in_previous_queries)
+  endif
+  return a:queries
+endfunction
+
+function! QQ#history#add_query(queries, query) abort
+  let queries = QQ#history#remove_query(a:queries, a:query)
+  let queries = [a:query] + queries
+  return queries
+endfunction
+
+function! QQ#history#queries(filepath) abort
+  if filereadable(expand(a:filepath))
+    return readfile(expand(a:filepath))
+  else
+    call writefile([], expand(a:filepath))
+    return []
+  endif
+endfunction
+
+function! QQ#history#save(query) abort
+  "save query
+  let filepath=s:filepath()
+  let query_str = QQ#query#get_query_str(a:query)[0]
+  let queries = QQ#history#queries(filepath)
+  let queries = QQ#history#add_query(queries, query_str)
+  if bufwinnr(s:B.history) != -1
+    call setbufvar(bufnr(s:B.history), 'queries', queries)
+    let previous_buffer=bufname('')
+    call QQ#utils#focus_window_with_name(s:B.history)
+    call QQ#history#populate()
+    call QQ#utils#focus_window_with_name(previous_buffer)
+  endif
+  call writefile(queries, filepath)
+endfunction
+
+" Execute: {{{1
+
+function! QQ#history#to_request() abort
+  let l:query_str=get(b:queries, line(".")-1, 0)
+  let l:query = QQ#query#convert(l:query_str)
+  call QQ#request#open(l:query)
+endfunction
+
+" Mapping: {{{1
+function! QQ#history#map_keys () abort
+  nnoremap <buffer> <CR> :call QQ#history#to_request()<CR>
+endfunction
+
+" Misc: {{{1
+" vim:fdm=marker

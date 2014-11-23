@@ -24,7 +24,7 @@ function! AddLines(lines)
   endfor
 endfunction
 
-function CallWithInput(func, input)
+function! CallWithInput(func, input)
   exe 'normal :call '.join([a:func.'()'] + a:input, '').''
 endfunction
 

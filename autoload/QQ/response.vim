@@ -39,6 +39,7 @@ function! QQ#response#open(...) abort
     "response buffer exists, request buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.request)
     sil! exe 'buf' bufnr(s:B.response) 
+    sil! exe 'vert res 80'
   elseif bufwinnr(s:B.response) == -1
     "response buffer exists but is not in window
     sil! exe 'keepa bo vert sb' s:B.response
@@ -64,6 +65,11 @@ function! QQ#response#setup() abort
   if v:version > 702
     setl nornu noudf cc=0
   end
+  runtime! syntax/javascript.vim
+  unlet b:current_syntax
+  let b:current_syntax = "QQ"
+  syn sync fromstart
+  set foldmethod=syntax
 endfunction
 
 " Populate: {{{1

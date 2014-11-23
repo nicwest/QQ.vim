@@ -23,7 +23,7 @@ endif
 
 if !exists('g:QQ_current_collection')
   "current collection
-  let g:QQ_current_collection = g:QQ_default_collection
+  let g:QQ_current_collection = copy(g:QQ_default_collection)
 endif
 
 if !exists('g:QQ_collection_window_location')
@@ -41,4 +41,5 @@ if !exists('g:QQ_buffer_prefix')
   let g:QQ_buffer_prefix = '[QQ]'
 endif
 
-nnoremap QQ :call QQ#request#open()
+nnoremap QQ :call QQ#request#open()<CR>
+nnoremap QH :call QQ#history#open()<CR>

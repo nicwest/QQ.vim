@@ -306,6 +306,14 @@ function! s:suite.execute()
   call s:assert.equals(l:response_list[9], 'https://www.googleapis.com/urlshortener/v1/url?shortUrl=https://weareleto.com&key=123123')
 endfunction
 
+" Convert: {{{1
+
+function! s:suite.convert_creates_correct_query()
+  "TODO: test this 
+endfunction
+
+
+
 " Misc: {{{1
 " vim: expandtab ts=2 sts=2 sw=2
 " vim:fdm=marker

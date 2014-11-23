@@ -77,13 +77,13 @@ endfunction
 
 function! s:suite.open_creates_new_window_of_correct_size()
   call QQ#request#open()
-  " checks window width is the specified 80 columns or is full width minus
+  " checks window width is the specified 50 columns or is full width minus
   " one column for the separator and one column for the previous buffer.
   " Bit hacky hense the explanation
-  let window_is_80_or_fullwidth = or(
-        \  winwidth(0) == 80,
+  let window_is_50_or_fullwidth = or(
+        \  winwidth(0) == 50,
         \  winwidth(0) == &columns - 2)
-  call s:assert.true(window_is_80_or_fullwidth)
+  call s:assert.true(window_is_50_or_fullwidth)
 endfunction
 
 function! s:suite.open_doesnt_recreate_buffer()
@@ -111,13 +111,13 @@ function! s:suite.open_replaces_window_of_correct_size()
   exe 'badd' s:B.response
   exe 'vert sb' bufnr(s:B.response)
   call QQ#request#open()
-  " checks window width is the specified 80 columns or is full width minus
+  " checks window width is the specified 50 columns or is full width minus
   " one column for the separator and one column for the previous buffer.
   " Bit hacky hense the explanation
-  let window_is_80_or_fullwidth = or(
-        \  winwidth(0) == 80,
+  let window_is_50_or_fullwidth = or(
+        \  winwidth(0) == 50,
         \  winwidth(0) == &columns - 2)
-  call s:assert.true(window_is_80_or_fullwidth)
+  call s:assert.true(window_is_50_or_fullwidth)
 endfunction
 
 function! s:suite.open_buffer_created_populates_with_default()
