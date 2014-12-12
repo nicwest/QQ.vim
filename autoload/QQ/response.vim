@@ -47,26 +47,27 @@ function! QQ#response#open(...) abort
   else 
     call QQ#utils#focus_window_with_name(s:B.response)
   endif
+  let l:response = a:0 ? a:1 : s:last_response 
+  let l:options = a:0 > 1 ? a:2 : []
+  let l:mimetype = QQ#mimetypes#getmimetype(l:response)
   call QQ#response#map_keys()
-  call QQ#response#setup()
-  if l:buffer_created
-    let l:response = a:0 ? a:1 : s:last_response 
-    let l:options = a:0 > 1 ? a:2 : []
-    call QQ#response#populate(l:response, l:options)
-  endif
+  call QQ#response#setup(l:mimetype)
+  call QQ#response#populate(l:response, l:options)
 endfunction
 
 " Setup: {{{1
 
-function! QQ#response#setup() abort
+function! QQ#response#setup(mimetype) abort
   set ft=QQ
   setl noswf nonu nobl nospell nocuc wfw
   setl fdc=0 fdl=99 tw=0 bt=nofile bh=hide
   if v:version > 702
     setl nornu noudf cc=0
   end
-  runtime! syntax/javascript.vim
-  unlet b:current_syntax
+  call QQ#mimetypes#guess_syntax(a:mimetype)
+  if exists('b:current_syntax')
+    unlet b:current_syntax
+  endif
   let b:current_syntax = "QQ"
   syn sync fromstart
   set foldmethod=syntax
