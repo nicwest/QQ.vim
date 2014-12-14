@@ -13,6 +13,7 @@ let s:R.falsey = '^\s*\(0\|false\|no\)\+\s*$'
 " Response: {{{1
 
 let s:R.response_header = "\\r\\n\\r\\n\\(\\([A-Z]\\+\\/[0-9\\.]\\+\\s\\+[0-9]\\+\\s\\+[A-Z]\\+\\)\\@!\\)"
+let s:R.content_type = 'Content-Type:\s\zs[a-zA-Z0-9_\-\.+]\+/[a-zA-Z0-9_\-\.+]\+\ze\(\_s\|;\)\?'
 
 " Curl: {{{1
 

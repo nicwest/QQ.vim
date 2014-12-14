@@ -116,15 +116,14 @@ endfunction
 
 function! s:suite.setup_settings()
   exe 'new' s:B.response
-  call QQ#response#setup()
-  call s:assert.equals(&filetype, 'QQ')
+  call QQ#response#setup('')
   call s:assert.equals(&l:swapfile, 0)
   call s:assert.equals(&l:number, 0)
   call s:assert.equals(&l:spell, 0)
   call s:assert.equals(&l:cursorcolumn, 0)
   call s:assert.equals(&l:winfixwidth, 1)
   call s:assert.equals(&l:foldcolumn, 0)
-  call s:assert.equals(&l:foldlevel, 99)
+  call s:assert.equals(&l:foldlevel, 0)
   call s:assert.equals(&l:textwidth, 0)
   call s:assert.equals(&l:buftype, 0)
   call s:assert.equals(&l:bufhidden, 'hide')
@@ -133,6 +132,18 @@ function! s:suite.setup_settings()
     call s:assert.equals(&l:undofile, 0)
     call s:assert.equals(&l:colorcolumn, 0)
   endif
+endfunction
+
+function! s:suite.setup_with_mimetype()
+  exe 'new' s:B.response
+  call QQ#response#setup('application/json')
+  call s:assert.equals(&l:filetype, 'QQ.javascript')
+endfunction
+
+function! s:suite.setup_without_mimetype()
+  exe 'new' s:B.response
+  call QQ#response#setup('')
+  call s:assert.equals(&l:filetype, 'QQ')
 endfunction
 
 " Populate: {{{1

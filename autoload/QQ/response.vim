@@ -59,18 +59,15 @@ endfunction
 
 function! QQ#response#setup(mimetype) abort
   set ft=QQ
+  echom a:mimetype 
+  call QQ#mimetypes#set_file_type(a:mimetype)
+  syn sync fromstart
+  set foldmethod=syntax
   setl noswf nonu nobl nospell nocuc wfw
-  setl fdc=0 fdl=99 tw=0 bt=nofile bh=hide
+  setl fdc=0 fdl=0 tw=0 bt=nofile bh=hide
   if v:version > 702
     setl nornu noudf cc=0
   end
-  call QQ#mimetypes#guess_syntax(a:mimetype)
-  if exists('b:current_syntax')
-    unlet b:current_syntax
-  endif
-  let b:current_syntax = "QQ"
-  syn sync fromstart
-  set foldmethod=syntax
 endfunction
 
 " Populate: {{{1
