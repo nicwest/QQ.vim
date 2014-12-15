@@ -15,6 +15,11 @@ let s:R.falsey = '^\s*\(0\|false\|no\)\+\s*$'
 let s:R.response_header = "\\r\\n\\r\\n\\(\\([A-Z]\\+\\/[0-9\\.]\\+\\s\\+[0-9]\\+\\s\\+[A-Z]\\+\\)\\@!\\)"
 let s:R.content_type = 'Content-Type:\s\zs[a-zA-Z0-9_\-\.+]\+/[a-zA-Z0-9_\-\.+]\+\ze\(\_s\|;\)\?'
 
+" Collections: {{{1
+
+let s:R.collection_name = '^\[\zs.\+\ze\].*$'
+let s:R.collection_path = '^\(\[.\+\]\s*\)\?\zs.*\ze$'
+
 " Curl: {{{1
 
 let s:R.curl_method =  '-X\s\zs.\{-}\ze\s'

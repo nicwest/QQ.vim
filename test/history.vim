@@ -135,7 +135,7 @@ function! s:suite.populate_sets_not_modifiable()
   call s:assert.equals(&l:modifiable, 0)
 endfunction
 
-function! s:suite.populate_sets_not_modifiable()
+function! s:suite.populates_with_correct_queries()
   exe 'new' s:B.history
   let b:queries = [
         \ s:curl_str_with_time.' -X TESTQUERY "http://test.com"',
