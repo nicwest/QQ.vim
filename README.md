@@ -139,7 +139,7 @@ Notes
 -----
 
 * This is very much a work in progress, if anything breaks let us know at:
-  [https://github.com/letolab/QQ.vim/issues](https://github.com/letolab/QQ.vim/issues)
+  [https://github.com/letolab/QQ.vim/issues](https://github.com/nicwest/QQ.vim/issues)
 * It's also still missing features...
 * And is more than a bit hacky in places.
 * QQ is probably a working title.
