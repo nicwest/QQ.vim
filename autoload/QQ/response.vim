@@ -110,7 +110,7 @@ endfunction
 
 function! QQ#response#populate(response, options) abort
   let [l:headers, l:body, l:time] = QQ#response#split_response(a:response)
-  set ma
+  setlocal ma
   normal! gg"_dG
   if !len(l:headers)
     call append(0, '--NO RESPONSE--')
@@ -128,7 +128,7 @@ function! QQ#response#populate(response, options) abort
     call append(0, split(l:response, "\r\n") + l:body_split)
   endif
   normal! Gddgg
-  set noma
+  setlocal noma
 endfunction
 
 " Mapping: {{{1
