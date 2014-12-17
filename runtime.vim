@@ -9,3 +9,4 @@ Runtime ~/Sideprojects/QQ.vim/autoload/QQ/auth.vim
 Runtime ~/Sideprojects/QQ.vim/autoload/QQ/response.vim
 Runtime ~/Sideprojects/QQ.vim/autoload/QQ/history.vim
 Runtime ~/Sideprojects/QQ.vim/autoload/QQ/mimetypes.vim
+Runtime ~/Sideprojects/QQ.vim/autoload/QQ/collection.vim
