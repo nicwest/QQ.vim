@@ -10,6 +10,9 @@ let s:R.strip_name = '^:\(.\{-}\):$'
 let s:R.strip = '^\s*\(.\{-}\)\s*$'
 let s:R.falsey = '^\s*\(0\|false\|no\)\+\s*$'
 
+" Vim: {{{1
+let s:R.uri = '\zs[a-z]\+:\/\/\S+\ze\_s'
+
 " Response: {{{1
 
 let s:R.response_header = "\\r\\n\\r\\n\\(\\([A-Z]\\+\\/[0-9\\.]\\+\\s\\+[0-9]\\+\\s\\+[A-Z]\\+\\)\\@!\\)"

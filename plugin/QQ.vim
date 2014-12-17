@@ -46,3 +46,4 @@ nnoremap QH :call QQ#history#open()<CR>
 nnoremap QCO :call QQ#collection#open()<CR>
 nnoremap QCN :call QQ#collection#new()<CR>
 nnoremap QCC :call QQ#collection#change()<CR>
+nnoremap QG :call QQ#go()<CR>

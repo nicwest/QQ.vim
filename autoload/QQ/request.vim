@@ -117,13 +117,7 @@ function! QQ#request#populate(...)  abort
   normal! Gddgg
 endfunction
 
-" Execute: {{{1
 
-function! QQ#request#execute(query) abort
-  let b:response = system(curl_str." ".shellescape(sub_url))
-  call s:save_query(curl_str." ".url)
-  call s:show_response(bufnr(""), options)
-endfunction
 
 " Send: {{{1
 
@@ -132,7 +126,7 @@ function! QQ#request#send() abort
   let [l:args, l:options] = QQ#query#get_options(l:query)
   let l:response = QQ#query#execute(l:query)
   let s:last_query = l:query
-  call QQ#history#save(query)
+  call QQ#history#save(l:query)
   call QQ#response#open(l:response, l:options)
 endfunction
 
@@ -140,6 +134,10 @@ endfunction
 
 function! QQ#request#add_option(option_name) abort
   call append(line("$"), ["OPTION: :" . a:option_name . ": true"])
+endfunction
+
+function! QQ#request#set_last_query(query) abort
+  let s:last_query = a:query
 endfunction
 
 " Mapping: {{{1
