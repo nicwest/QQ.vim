@@ -136,10 +136,12 @@ function! QQ#collection#completion (A, L, P) abort
   let l:collection_list = QQ#collection#names(QQ#collection#collections(g:QQ_collection_list))
   return join(l:collection_list, "\n")
 endfunction
+
 " Execute: {{{1
 
 function! QQ#collection#to_history() abort
   let l:collection=matchstr(get(b:collections, line('.')-1, 0), s:R.collection_path)
+  let g:QQ_current_collection = l:collection
   call QQ#history#open(l:collection)
 endfunction
 
@@ -154,11 +156,23 @@ endfunction
 
 function! QQ#collection#change() abort
   let l:collection = input("Change collection: ", "", "custom,QQ#collection#completion")
-  let path = s:get_collection_path_from_name(collection)
-  if len(path) > 0
-    call s:set_current_collection(path)
+  let l:filepath = QQ#collection#get_path_from_name(l:collection)
+  if len(l:filepath) > 0
+    call QQ#collection#set(l:filepath)
   else
-    throw "collection with the name" collection "could not be found"
+    throw "collection with the name '".l:collection."' could not be found"
+  endif
+endfunction
+
+" Utils: {{{1
+
+function! QQ#collection#get_path_from_name(name) abort
+  let l:collection_list = QQ#collection#collections(g:QQ_collection_list)
+  call filter(l:collection_list, "v:val =~ '\\['.a:name.'\\].*$'")
+  if len(l:collection_list) > 0
+    return matchstr(l:collection_list[0], s:R.collection_path)
+  else
+    return ''
   endif
 endfunction
 

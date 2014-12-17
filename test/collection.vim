@@ -1,5 +1,6 @@
 let s:suite = themis#suite('collection')
 let s:assert = themis#helper('assert')
+call themis#helper('command')
 " Test Setup: {{{1
 let s:themis_buffers = filter(range(1, bufnr('$')), 'bufexists(v:val)')
 function! s:buflist ()
@@ -233,6 +234,117 @@ function! s:suite.completion_returns_new_lined_string()
   let g:QQ_collection_list = l:old_list
   call s:assert.equals(l:completion, join(s:test_names, "\n"))
 endfunction
+
+" Execute: {{{1
+
+function! s:suite.to_history_opens_history_buffer()
+  let l:old_collection = copy(g:QQ_current_collection)
+  call s:assert.false(bufexists(s:B.history))
+  exe 'new' s:B.collections
+  let l:filepath = tempname()
+  let b:collections = ['[pew]'.l:filepath]
+  call QQ#collection#to_history()
+  let g:QQ_current_collection = l:old_collection
+  call s:assert.true(bufexists(s:B.history))
+endfunction
+
+function! s:suite.to_history_opens_correct_collection()
+  let l:old_collection = copy(g:QQ_current_collection)
+  call s:assert.false(bufexists(s:B.history))
+  exe 'new' s:B.collections
+  call AddLines(s:test_names)
+  let l:filepath = tempname()
+  let b:collections = s:test_collections + ['[pew]'.l:filepath]
+  norm jjj
+  call QQ#collection#to_history()
+  let l:new_collection = g:QQ_current_collection
+  let g:QQ_current_collection = l:old_collection
+  call s:assert.equals(l:new_collection, l:filepath)
+endfunction
+
+function! s:suite.new_saves_collection()
+  let l:old_collection = copy(g:QQ_current_collection)
+  let l:old_list = copy(g:QQ_collection_list)
+  let l:filepath_collection = tempname()
+  let l:filepath_list = tempname()
+  let g:QQ_collection_list = l:filepath_list
+  call CallWithInput('QQ#collection#new', [''.l:filepath_collection, 'pew'])
+  let g:QQ_current_collection = l:old_collection
+  let g:QQ_collection_list = l:old_list
+  let l:collections = readfile(l:filepath_list)
+  call s:assert.equals(l:collections, ['[pew] '.l:filepath_collection])
+endfunction
+
+function! s:suite.new_sets_new_collection_to_current_collection()
+  let l:old_collection = copy(g:QQ_current_collection)
+  let l:old_list = copy(g:QQ_collection_list)
+  let l:filepath_collection = tempname()
+  let l:filepath_list = tempname()
+  let g:QQ_collection_list = l:filepath_list
+  call CallWithInput('QQ#collection#new', [''.l:filepath_collection, 'pew'])
+  let l:new_collection = g:QQ_current_collection
+  let g:QQ_current_collection = l:old_collection
+  let g:QQ_collection_list = l:old_list
+  call s:assert.equals(l:new_collection, l:filepath_collection)
+endfunction
+
+function! s:suite.change_changes_collection_when_name_exists()
+  let l:old_collection = copy(g:QQ_current_collection)
+  let l:old_list = copy(g:QQ_collection_list)
+  let l:filepath_collection = tempname()
+  let l:filepath_list = tempname()
+  let g:QQ_collection_list = l:filepath_list
+  call writefile(s:test_collections + ['[pew]'.l:filepath_collection], l:filepath_list)
+  call CallWithInput('QQ#collection#change', ['pew'])
+  let l:new_collection = g:QQ_current_collection
+  let g:QQ_current_collection = l:old_collection
+  let g:QQ_collection_list = l:old_list
+  call s:assert.equals(l:new_collection, l:filepath_collection)
+endfunction
+
+function! s:suite.change_changes_collection_when_name_exists()
+  let l:old_list = copy(g:QQ_collection_list)
+  let l:filepath_list = tempname()
+  let g:QQ_collection_list = l:filepath_list
+  call writefile(s:test_collections, l:filepath_list)
+  Throws /collection with the name 'pew' could not be found/
+        \ :call CallWithInput('QQ#collection#change', ['pew'])
+  let g:QQ_collection_list = l:old_list
+endfunction
+
+" Utils: {{{1
+
+function! s:suite.get_path_from_name_name_exists()
+  let l:old_list = copy(g:QQ_collection_list)
+  let l:filepath = tempname()
+  let g:QQ_collection_list = l:filepath
+  call writefile(s:test_collections, l:filepath)
+  let l:path = QQ#collection#get_path_from_name('test')
+  let g:QQ_collection_list = l:old_list
+  call s:assert.equals(l:path, '/path/to/test/collection')
+endfunction
+
+function! s:suite.get_path_from_name_no_name()
+  let l:old_list = copy(g:QQ_collection_list)
+  let l:filepath = tempname()
+  let g:QQ_collection_list = l:filepath
+  call writefile(s:test_collections, l:filepath)
+  let l:path = QQ#collection#get_path_from_name('pew')
+  let g:QQ_collection_list = l:old_list
+  call s:assert.equals(l:path, '')
+endfunction
+
+
+" Mapping: {{{1
+"
+function! s:suite.maps_correct_keys()
+  call QQ#collection#map_keys()
+  call s:assert.equals(maparg('<CR>', 'n'), ':call QQ#collection#to_history()<CR>')
+endfunction
+
+
+
+
 
 
 " Misc: {{{1
