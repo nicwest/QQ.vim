@@ -146,6 +146,7 @@ function! QQ#request#map_keys () abort
   nmap <buffer> QAB :call QQ#auth#basic()<CR>
   nmap <buffer> QAO :call QQ#auth#oauth2()<CR>
   nmap <buffer> QP :call QQ#request#add_option('pretty-print')<CR>
+  nmap <buffer> QF :call QQ#request#add_option('follow')<CR>
 endfunction
 " Misc: {{{1
 " vim:fdm=marker
