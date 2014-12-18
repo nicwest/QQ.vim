@@ -77,9 +77,10 @@ Body, at the moment this does nothing :)
 
 * `QQ` opens a new request window
 * `QH` opens the recent request history
-* `QCL` opens the collection list
+* `QCO` opens the collection list
 * `QCC` change current collection
-* `QAC` add a new collection
+* `QCN` add a new collection
+* `QG` opens a new request window with URL under cursor as URL
 
 **from a REQUEST buffer**
 
@@ -87,12 +88,10 @@ Body, at the moment this does nothing :)
 * `QP` adds the JSON pretty-printing option to the current request
 * `QAB` adds basic authentication to the current request
 * `QAO` adds oAuth2 to the current request
-* `QH` opens the recent request history
 
 **from a RESPONSE buffer**
 
 * `QQ` returns to the previous REQUEST buffer
-* `QH` opens the recent request history
 
 **from a HISTORY buffer**
 
