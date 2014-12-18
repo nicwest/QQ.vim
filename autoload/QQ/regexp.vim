@@ -11,7 +11,7 @@ let s:R.strip = '^\s*\(.\{-}\)\s*$'
 let s:R.falsey = '^\s*\(0\|false\|no\)\+\s*$'
 
 " Vim: {{{1
-let s:R.uri = '\zs[a-z]\+:\/\/\S+\ze\_s'
+let s:R.uri = '\zs[a-z]\+:\/\/\S\+\ze\_s\?'
 
 " Response: {{{1
 
