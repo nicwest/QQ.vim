@@ -57,19 +57,11 @@ if !exists('g:QQ_defaults_mapped')
 endif
 
 nnoremap <silent> <Plug>QQRequest :call QQ#request#open()<CR>
-nnoremap <silent> <Plug>QQSend :call QQ#request#send()<CR>
-nnoremap <silent> <Plug>QQBasicAuth :call QQ#auth#basic()<CR>
-nnoremap <silent> <Plug>QQOAuth2 :call QQ#auth#oauth2()<CR>
-nnoremap <silent> <Plug>QQPrettyPrint :call QQ#auth#add_option('pretty-print')<CR>
-nnoremap <silent> <Plug>QQFollow :call QQ#auth#add_option('follow')<CR>
 nnoremap <silent> <Plug>QQHistory :call QQ#history#open()<CR>
-nnoremap <silent> <Plug>QQHistoryRequest :call QQ#history#to_request()<CR>
 nnoremap <silent> <Plug>QQCollections :call QQ#collection#open()<CR>
-nnoremap <silent> <Plug>QQCollectionHistory :call QQ#collection#to_history()<CR>
 nnoremap <silent> <Plug>QQCollectionNew :call QQ#collection#new()<CR>
 nnoremap <silent> <Plug>QQCollectionChange :call QQ#collection#change()<CR>
 nnoremap <silent> <Plug>QQGo :call QQ#go()<CR>
-nnoremap <silent> <Plug>QQClose :call QQ#utils#close_window()<CR>
 
 let s:key_mappings = [
       \ {'suffix': 'Q', 'plug': 'QQRequest'},

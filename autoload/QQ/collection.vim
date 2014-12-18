@@ -179,8 +179,8 @@ endfunction
 " Mapping: {{{1
 
 function! QQ#collection#map_keys () abort
-  nnoremap <buffer> <CR> <Plug>QQCollectionHistory
-  nnoremap <buffer> q <Plug>QQClose
+  nnoremap <buffer> <CR> :call QQ#collection#to_history()<CR>
+  nnoremap <buffer> q :call QQ#utils#close_window()<CR>
 endfunction
 
 " Misc: {{{1

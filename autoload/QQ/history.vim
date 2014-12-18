@@ -127,8 +127,8 @@ endfunction
 
 " Mapping: {{{1
 function! QQ#history#map_keys () abort
-  nnoremap <buffer> <CR> <Plug>QQHistoryRequest
-  nnoremap <buffer> q <Plug>QQClose
+  nnoremap <buffer> <CR> :call QQ#history#to_request()<CR>
+  nnoremap <buffer> q :call QQ#utils#close_window()<CR>
 endfunction
 
 " Misc: {{{1
