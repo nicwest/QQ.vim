@@ -41,9 +41,51 @@ if !exists('g:QQ_buffer_prefix')
   let g:QQ_buffer_prefix = '[QQ]'
 endif
 
-nnoremap QQ :call QQ#request#open()<CR>
-nnoremap QH :call QQ#history#open()<CR>
-nnoremap QCO :call QQ#collection#open()<CR>
-nnoremap QCN :call QQ#collection#new()<CR>
-nnoremap QCC :call QQ#collection#change()<CR>
-nnoremap QG :call QQ#go()<CR>
+if !exists('g:QQ_map_prefix')
+  "prefix to map command with
+  let g:QQ_map_prefix = 'Q'
+endif
+
+if !exists('g:QQ_map_defaults')
+  "map default keys
+  let g:QQ_map_defaults = 1
+endif
+
+if !exists('g:QQ_defaults_mapped')
+  "default keys have been mapped
+  let g:QQ_defaults_mapped = 0
+endif
+
+nnoremap <silent> <Plug>QQRequest :call QQ#request#open()<CR>
+nnoremap <silent> <Plug>QQSend :call QQ#request#send()<CR>
+nnoremap <silent> <Plug>QQBasicAuth :call QQ#auth#basic()<CR>
+nnoremap <silent> <Plug>QQOAuth2 :call QQ#auth#oauth2()<CR>
+nnoremap <silent> <Plug>QQPrettyPrint :call QQ#auth#add_option('pretty-print')<CR>
+nnoremap <silent> <Plug>QQFollow :call QQ#auth#add_option('follow')<CR>
+nnoremap <silent> <Plug>QQHistory :call QQ#histoy#open()<CR>
+nnoremap <silent> <Plug>QQHistoryRequest :call QQ#histoy#to_request()<CR>
+nnoremap <silent> <Plug>QQCollections :call QQ#collection#open()<CR>
+nnoremap <silent> <Plug>QQCollectionHistory :call QQ#collection#to_history()<CR>
+nnoremap <silent> <Plug>QQCollectionNew :call QQ#collection#new()<CR>
+nnoremap <silent> <Plug>QQCollectionChange :call QQ#collection#change()<CR>
+nnoremap <silent> <Plug>QQGo :call QQ#go()<CR>
+nnoremap <silent> <Plug>QQClose :call QQ#utils#close_window()<CR>
+
+let s:key_mappings = [
+      \ {'suffix': 'Q', 'plug': 'QQRequest'},
+      \ {'suffix': 'H', 'plug': 'QQHistory'},
+      \ {'suffix': 'CO', 'plug': 'QQCollections'},
+      \ {'suffix': 'CN', 'plug': 'QQCollectionNew'},
+      \ {'suffix': 'CC', 'plug': 'QQCollectionChange'},
+      \ {'suffix': 'CG', 'plug': 'QQGo'},
+      \ ]
+
+if g:QQ_map_defaults && !g:QQ_defaults_mapped
+  for key_mapping in s:key_mappings
+    let plug_name = '<Plug>' . key_mapping.plug
+    if !hasmapto(plug_name)
+      exe 'nmap' g:QQ_map_prefix . key_mapping.suffix plug_name
+    endif
+  endfor
+  let g:QQ_defaults_mapped = 1
+endif

@@ -127,7 +127,7 @@ endfunction
 
 " Mapping: {{{1
 function! QQ#history#map_keys () abort
-  nnoremap <buffer> <CR> :call QQ#history#to_request()<CR>
+  nnoremap <buffer> <CR> <Plug>QQHistoryRequest
 endfunction
 
 " Misc: {{{1

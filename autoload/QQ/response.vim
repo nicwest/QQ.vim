@@ -59,7 +59,6 @@ endfunction
 
 function! QQ#response#setup(mimetype) abort
   set ft=QQ
-  echom a:mimetype 
   call QQ#mimetypes#set_file_type(a:mimetype)
   syn sync fromstart
   set foldmethod=syntax
@@ -133,7 +132,7 @@ endfunction
 
 " Mapping: {{{1
 function! QQ#response#map_keys() abort
-  map <buffer> q :call QQ#utils#close_window()<CR>
+  nnoremap <buffer> q <Plug>QQClose
 endfunction
 
 " Misc: {{{1
