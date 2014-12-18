@@ -180,6 +180,7 @@ endfunction
 
 function! QQ#collection#map_keys () abort
   nnoremap <buffer> <CR> <Plug>QQCollectionHistory
+  nnoremap <buffer> q <Plug>QQClose
 endfunction
 
 " Misc: {{{1

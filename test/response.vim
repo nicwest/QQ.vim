@@ -205,7 +205,7 @@ endfunction
 
 function! s:suite.map_keys()
   call QQ#response#map_keys()
-  call s:assert.equals(maparg('q', 'n'), ':call QQ#utils#close_window()<CR>')
+  call s:assert.equals(maparg('q', 'n'), '<Plug>QQClose')
 endfunction
 
   

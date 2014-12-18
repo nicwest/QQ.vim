@@ -207,7 +207,8 @@ endfunction
 " Mapping: {{{1
 function! s:suite.maps_correct_keys()
   call QQ#history#map_keys()
-  call s:assert.equals(maparg('<CR>', 'n'), ':call QQ#history#to_request()<CR>')
+  call s:assert.equals(maparg('<CR>', 'n'), '<Plug>QQHistoryRequest')
+  call s:assert.equals(maparg('q', 'n'), '<Plug>QQClose')
 endfunction
 
 " Misc: {{{1

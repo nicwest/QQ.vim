@@ -209,10 +209,11 @@ endfunction
 function! s:suite.maps_correct_keys()
   
   call QQ#request#map_keys()
-  call s:assert.equals(maparg('QQ', 'n'), ':call QQ#request#send()<CR>')
-  call s:assert.equals(maparg('QAB', 'n'), ':call QQ#auth#basic()<CR>')
-  call s:assert.equals(maparg('QAO', 'n'), ':call QQ#auth#oauth2()<CR>')
-  call s:assert.equals(maparg('QP', 'n'), ':call QQ#request#add_option(''pretty-print'')<CR>')
+  call s:assert.equals(maparg('QQ', 'n'), '<Plug>QQSend')
+  call s:assert.equals(maparg('QAB', 'n'), '<Plug>QQBasicAuth')
+  call s:assert.equals(maparg('QAO', 'n'), '<Plug>QQOAuth2')
+  call s:assert.equals(maparg('QP', 'n'), '<Plug>QQPrettyPrint')
+  call s:assert.equals(maparg('QF', 'n'), '<Plug>QQFollow')
 endfunction
 
 

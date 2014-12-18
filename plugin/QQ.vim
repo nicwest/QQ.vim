@@ -62,8 +62,8 @@ nnoremap <silent> <Plug>QQBasicAuth :call QQ#auth#basic()<CR>
 nnoremap <silent> <Plug>QQOAuth2 :call QQ#auth#oauth2()<CR>
 nnoremap <silent> <Plug>QQPrettyPrint :call QQ#auth#add_option('pretty-print')<CR>
 nnoremap <silent> <Plug>QQFollow :call QQ#auth#add_option('follow')<CR>
-nnoremap <silent> <Plug>QQHistory :call QQ#histoy#open()<CR>
-nnoremap <silent> <Plug>QQHistoryRequest :call QQ#histoy#to_request()<CR>
+nnoremap <silent> <Plug>QQHistory :call QQ#history#open()<CR>
+nnoremap <silent> <Plug>QQHistoryRequest :call QQ#history#to_request()<CR>
 nnoremap <silent> <Plug>QQCollections :call QQ#collection#open()<CR>
 nnoremap <silent> <Plug>QQCollectionHistory :call QQ#collection#to_history()<CR>
 nnoremap <silent> <Plug>QQCollectionNew :call QQ#collection#new()<CR>
