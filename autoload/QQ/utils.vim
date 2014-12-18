@@ -110,6 +110,10 @@ function! QQ#utils#error(type, message)
   throw a:type." ERROR: ".a:message
 endfunction
 
+function! QQ#utils#close_window() abort
+  norm! ZQ
+endfunction
+
 function! QQ#utils#warning(type, message)
   echohl WarningMsg | echomsg a:type." WARNING: ".a:message | echohl None
 endfunction
