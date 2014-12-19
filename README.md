@@ -3,6 +3,8 @@ QQ
 
 QQ is a wrapper over curl for making remote calls inside vim.
 
+[GIFS!](GIFS.md)
+
 Usage
 -----
 
