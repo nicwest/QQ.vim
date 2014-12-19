@@ -73,7 +73,7 @@ function! QQ#query#get_data(query) abort
               \ 'File not readable: ' . QQ#utils#strip(path))
         continue
       endif
-      let l:args .= QQ#utils#strip(name).'=@'.QQ#utils#strip(path)
+      let l:args .= QQ#utils#strip(name).'=@'. expand(QQ#utils#strip(path))
     endfor
     let l:args .= '"'
   endif

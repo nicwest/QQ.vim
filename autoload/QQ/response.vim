@@ -132,7 +132,7 @@ endfunction
 
 " Mapping: {{{1
 function! QQ#response#map_keys() abort
-  nnoremap <buffer> q <Plug>QQClose
+  nnoremap <buffer> q :call QQ#utils#close_window()<CR>
 endfunction
 
 " Misc: {{{1
