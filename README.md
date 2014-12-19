@@ -95,14 +95,17 @@ Body, at the moment this does nothing :)
 **from a RESPONSE buffer**
 
 * `QQ` returns to the previous REQUEST buffer
+* `q` closes the buffer
 
 **from a HISTORY buffer**
 
 * `<CR>` loads previous request into REQUEST buffer
+* `q` closes the buffer
 
 **from a COLLECTIONS buffer**
 
 * `<CR>` open collection under cursor and set as current
+* `q` closes the buffer
 
 ###Example request###
 
@@ -136,7 +139,10 @@ List of configurable options for the plugin:
 * `g:QQ_collection_window_height` height of collection window. default `10`
 * `g:QQ_buffer_prefix` buffer prefix of all QQ buffers, avoids naming clashes
    default `'[QQ]'`
-
+* `g:QQ_map_prefix` the prefix to key maps, default `Q`
+* `g:QQ_map_defaults` if you want to turn the default mappings off, default
+  `0`
+ 
 Notes
 -----
 
