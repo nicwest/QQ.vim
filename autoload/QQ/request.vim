@@ -67,8 +67,6 @@ function! QQ#request#setup() abort
   if v:version > 702
     setl nornu noudf cc=0
   end
-  runtime! syntax/javascript.vim
-  unlet b:current_syntax
   let b:current_syntax = "QQ"
   syn sync fromstart
   set foldmethod=syntax
