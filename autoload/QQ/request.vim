@@ -136,7 +136,6 @@ endfunction
 
 " Mapping: {{{1
 function! QQ#request#map_keys () abort
-  exe 'new' s:B.request
   nmap <buffer> QQ :call QQ#request#send()<CR>
   nmap <buffer> QAB :call QQ#auth#basic()<CR>
   nmap <buffer> QAO :call QQ#auth#oauth2()<CR>
