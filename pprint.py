@@ -14,7 +14,7 @@ def _json(infile, outfile):
 def _xml(infile, outfile):
     try:
         obj = xml.parse(infile)
-    except ValueError, e:
+    except Exception, e:
         raise SystemExit(e)
     pretty_xml_as_string = obj.toprettyxml()
     outfile.write(pretty_xml_as_string)
@@ -24,9 +24,9 @@ def main():
     filetype = sys.argv[1]
     infile = open(sys.argv[2], 'rb')
     outfile = sys.stdout
-    if filetype == 'javascript':
+    if filetype in ['javascript']:
         _json(infile, outfile)
-    if filetype == ['html', 'xml']:
+    elif filetype in ['html', 'xml']:
         _xml(infile, outfile)
     else:
         outfile.write(infile.read())
