@@ -88,7 +88,7 @@ Body, at the moment this does nothing :)
 
 * `QQ` executes the current request as defined in the buffer
 * `QP` adds the JSON pretty-printing option to the current request
-* `QP` adds the follow option to current request (follows HTTP redirects)
+* `QF` adds the follow option to current request (follows HTTP redirects)
 * `QAB` adds basic authentication to the current request
 * `QAO` adds oAuth2 to the current request
 
@@ -147,7 +147,7 @@ Notes
 -----
 
 * This is very much a work in progress, if anything breaks let us know at:
-  [https://github.com/letolab/QQ.vim/issues](https://github.com/nicwest/QQ.vim/issues)
+  [https://github.com/nicwest/QQ.vim/issues](https://github.com/nicwest/QQ.vim/issues)
 * It's also still missing features...
 * And is more than a bit hacky in places.
 * QQ is probably a working title.
