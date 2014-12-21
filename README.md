@@ -1,3 +1,4 @@
+[![Stories in Ready](https://badge.waffle.io/nicwest/QQ.vim.png?label=ready&title=Ready)](https://waffle.io/nicwest/QQ.vim)
 QQ
 ==
 
