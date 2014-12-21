@@ -48,7 +48,7 @@ function! QQ#response#open(...) abort
   let l:mimetype = QQ#mimetypes#getmimetype(l:response)
   call QQ#response#map_keys()
   call QQ#response#setup(l:mimetype)
-  call QQ#response#populate(l:response, l:options)
+  call QQ#response#populate(l:response, l:options, l:mimetype)
 endfunction
 
 " Setup: {{{1
@@ -103,7 +103,7 @@ function! QQ#response#format_time(time) abort
   return l:timeblock
 endfunction
 
-function! QQ#response#populate(response, options) abort
+function! QQ#response#populate(response, options, mimetype) abort
   let [l:headers, l:body, l:time] = QQ#response#split_response(a:response)
   setlocal ma
   normal! gg"_dG
@@ -113,7 +113,9 @@ function! QQ#response#populate(response, options) abort
     if index(a:options, 'pretty-print') != -1
       let l:tmpfn = tempname()
       call writefile(split(l:body, "\n"), l:tmpfn)
-      let l:ppbody = system('python -m json.tool '.l:tmpfn)
+      let l:pprint_path = expand('<sfile>:p:h')."/pprint.py"
+      let l:formatting_type = QQ#mimetypes#getformattingtype(a:mimetype)
+      let l:ppbody = system('python ' . l:pprint_path . ' ' . l:formatting_type . ' ' . l:tmpfn)
       let l:body_split = split(l:ppbody, '\n')
     else
       let l:body_split = split(substitute(l:body, '\r\n', '\n', 'g'), '\n')

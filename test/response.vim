@@ -26,13 +26,13 @@ endfunction
 
 let s:B = QQ#buffers#import()
 
-let s:test_headers = "HTTP/1.1 302 Moved Temporarily\r\nCache-Control: private\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: 259\r\nDate: Tue, 04 Nov 2014 10:01:17 GMT\r\nServer: GFE/2.0\r\nAlternate-Protocol: 80:quic,p=0.01\r\nConnection: keep-alive"
+let s:test_headers = "HTTP/1.1 302 Moved Temporarily\r\nCache-Control: private\r\nContent-Type: application/json; charset=UTF-8\r\nContent-Length: 259\r\nDate: Tue, 04 Nov 2014 10:01:17 GMT\r\nServer: GFE/2.0\r\nAlternate-Protocol: 80:quic,p=0.01\r\nConnection: keep-alive"
 let s:test_body = '{"test": "lol", "trololol": [1, 2, 3], "pie": true}'
 let s:test_times = "\r\n1\r\n2\r\n3\r\n4\r\n5\r\n6\r\n7"
 let s:test_response = s:test_headers . "\r\n\r\n" . s:test_body . s:test_times
 let s:test_options = ['pretty-print']
 let s:test_time = {'response': 7, 'name_lookup': 1, 'connect': 2, 'app_connect': 3, 'pre_transfer': 4, 'redirects': 5, 'start_transfer': 6}
-let s:test_headers_output = ['HTTP/1.1 302 Moved Temporarily', 'Cache-Control: private', 'Content-Type: text/html; charset=UTF-8', 'Content-Length: 259', 'Date: Tue, 04 Nov 2014 10:01:17 GMT', 'Server: GFE/2.0', 'Alternate-Protocol: 80:quic,p=0.01', 'Connection: keep-alive', '']
+let s:test_headers_output = ['HTTP/1.1 302 Moved Temporarily', 'Cache-Control: private', 'Content-Type: application/json; charset=UTF-8', 'Content-Length: 259', 'Date: Tue, 04 Nov 2014 10:01:17 GMT', 'Server: GFE/2.0', 'Alternate-Protocol: 80:quic,p=0.01', 'Connection: keep-alive', '']
 let s:test_time_output = ['RESPONSE TIME: 7', 'Name-Lookup: 1', 'Connect: 2', 'App-Connect: 3', 'Pre-Transfer: 4', 'Redirects: 5', 'Start-Transfer: 6', ''] 
 let s:test_body_output = ['{"test": "lol", "trololol": [1, 2, 3], "pie": true}']
 let s:test_body_output_pretty = ['{', '    "pie": true,', '    "test": "lol",', '    "trololol": [', '        1,', '        2,', '        3', '    ]', '}']
@@ -175,28 +175,28 @@ endfunction
 
 function! s:suite.populate_with_response()
   exe 'new' s:B.response 
-  call QQ#response#populate(s:test_response, [])
+  call QQ#response#populate(s:test_response, [], 'application/json')
   let l:buffer_text = getbufline(bufnr(s:B.response), 0, '$')
   call s:assert.equals(l:buffer_text, s:test_response_output)
 endfunction
 
 function! s:suite.populate_with_no_response()
   exe 'new' s:B.response 
-  call QQ#response#populate('', [])
+  call QQ#response#populate('', [], 'application/json')
   let l:buffer_text = getbufline(bufnr(s:B.response), 0, '$')
   call s:assert.equals(l:buffer_text, ['--NO RESPONSE--'])
 endfunction
 
 function! s:suite.populate_with_no_response_body()
   exe 'new' s:B.response 
-  call QQ#response#populate(s:test_headers . s:test_times, [])
+  call QQ#response#populate(s:test_headers . s:test_times, [], 'application/json')
   let l:buffer_text = getbufline(bufnr(s:B.response), 0, '$')
   call s:assert.equals(l:buffer_text, s:test_headers_output + s:test_time_output)
 endfunction
 
 function! s:suite.populate_with_response_and_pretty_print()
   exe 'new' s:B.response 
-  call QQ#response#populate(s:test_response, ['pretty-print'])
+  call QQ#response#populate(s:test_response, ['pretty-print'], 'application/json')
   let l:buffer_text = getbufline(bufnr(s:B.response), 0, '$')
   call s:assert.equals(l:buffer_text, s:test_response_output_pretty)
 endfunction

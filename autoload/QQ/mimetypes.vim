@@ -6,9 +6,13 @@ function! QQ#mimetypes#getmimetype (response) abort
   return matchstr(a:response, s:R.content_type)
 endfunction
 
+function! QQ#mimetypes#getformattingtype(mimetype) abort
+  return get(s:mimetypes, tolower(a:mimetype), '')
+endfunction
+
 " Set Syntax: {{{1
 function! QQ#mimetypes#set_file_type (mimetype) abort
-  let l:syntax_file = get(s:mimetypes, tolower(a:mimetype), '')
+  let l:syntax_file = QQ#mimetypes#getformattingtype(a:mimetype)
   if len(l:syntax_file)
     exe 'set ft=QQ.'.l:syntax_file
   endif
