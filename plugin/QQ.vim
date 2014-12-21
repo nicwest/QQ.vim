@@ -69,7 +69,7 @@ let s:key_mappings = [
       \ {'suffix': 'CO', 'plug': 'QQCollections'},
       \ {'suffix': 'CN', 'plug': 'QQCollectionNew'},
       \ {'suffix': 'CC', 'plug': 'QQCollectionChange'},
-      \ {'suffix': 'CG', 'plug': 'QQGo'},
+      \ {'suffix': 'G', 'plug': 'QQGo'},
       \ ]
 
 if g:QQ_map_defaults && !g:QQ_defaults_mapped
