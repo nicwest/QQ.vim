@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/nicwest/QQ.vim.svg?branch=master)](https://travis-ci.org/nicwest/QQ.vim)
 [![Stories in Ready](https://badge.waffle.io/nicwest/QQ.vim.png?label=ready&title=Ready)](https://waffle.io/nicwest/QQ.vim)
 QQ
 ==

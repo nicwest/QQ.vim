@@ -284,8 +284,10 @@ endfunction
 " Execute: {{{1
 
 function! s:suite.execute()
+  let l:old_exec = g:QQ_curl_executable
   let g:QQ_curl_executable = 'python test/mock/curl.py'
   let l:response = QQ#query#execute(s:test_query)
+  let g:QQ_curl_executable = l:old_exec
   let l:response_list = split(l:response[2:-4], "', '")
   call s:assert.equals(l:response_list[0], '-si')
   call s:assert.equals(l:response_list[1], '-w')

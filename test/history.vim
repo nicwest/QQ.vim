@@ -25,7 +25,7 @@ function! AddLines(lines)
   endfor
 endfunction
 
-function CallWithInput(func, input)
+function! CallWithInput(func, input)
   exe 'normal :call '.join([a:func.'()'] + a:input, '').''
 endfunction
 
@@ -206,9 +206,10 @@ endfunction
 
 " Mapping: {{{1
 function! s:suite.maps_correct_keys()
+  exe 'new' s:B.history
   call QQ#history#map_keys()
-  call s:assert.equals(maparg('<CR>', 'n'), '<Plug>QQHistoryRequest')
-  call s:assert.equals(maparg('q', 'n'), '<Plug>QQClose')
+  call s:assert.equals(maparg('<CR>', 'n'), ':call QQ#history#to_request()<CR>')
+  call s:assert.equals(maparg('q', 'n'), ':call QQ#utils#close_window()<CR>')
 endfunction
 
 " Misc: {{{1

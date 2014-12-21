@@ -22,25 +22,21 @@ let s:query_arg_order = [
 " Open: {{{1
 function! QQ#request#open(...) abort
   "finds the REQUEST buffer where ever it may be
-  let l:buffer_created = 0
   if and(!bufexists(s:B.request), !bufexists(s:B.response))
     "neither request or response buffer exists
     sil! exe 'keepa bo 50vnew' s:B.request
-    let l:buffer_created = 1
   elseif and(!bufexists(s:B.request), bufwinnr(s:B.response) != -1)
     "request buffer doesn't exist, response buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.response)
     sil! exe 'badd' s:B.request
     sil! exe 'buf' bufnr(s:B.request) 
     sil! exe 'vert res 50'
-    let l:buffer_created = 1
   elseif and(!bufexists(s:B.request), bufexists(s:B.response))
     "request buffer doesn't exist, response buffer exists but is not in window
     sil! exe 'keepa bo vert sb' s:B.response
     sil! exe 'vert res 50'
     sil! exe 'badd' s:B.request
     sil! exe 'buf' bufnr(s:B.request) 
-    let l:buffer_created = 1
   elseif and(bufwinnr(s:B.request) == -1, bufwinnr(s:B.response) != -1)
     "request buffer exists, response buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.response)
@@ -121,7 +117,7 @@ endfunction
 
 function! QQ#request#send() abort
   let l:query = QQ#request#convert()
-  let [l:args, l:options] = QQ#query#get_options(l:query)
+  let l:options = QQ#query#get_options(l:query)[1]
   let l:response = QQ#query#execute(l:query)
   let s:last_query = l:query
   call QQ#history#save(l:query)
@@ -140,6 +136,7 @@ endfunction
 
 " Mapping: {{{1
 function! QQ#request#map_keys () abort
+  exe 'new' s:B.request
   nmap <buffer> QQ :call QQ#request#send()<CR>
   nmap <buffer> QAB :call QQ#auth#basic()<CR>
   nmap <buffer> QAO :call QQ#auth#oauth2()<CR>

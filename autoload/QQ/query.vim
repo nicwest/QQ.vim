@@ -43,7 +43,6 @@ endfunction
 
 " Data: {{{1
 function! QQ#query#get_data(query) abort
-  let l:fields = []
   let l:data = get(a:query, 'DATA', [])
   let l:files = get(a:query, 'DATA-FILE', [])
   let l:args = ''
@@ -165,7 +164,7 @@ endfunction
 " Execute: {{{1
 
 function! QQ#query#execute(query) abort
-  let [l:query_str, l:query_str_with_vars] = QQ#query#get_query_str(a:query)
+  let l:query_str_with_vars = QQ#query#get_query_str(a:query)[1]
   let l:response = system(l:query_str_with_vars)
   return l:response
 endfunction

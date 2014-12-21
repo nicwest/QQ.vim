@@ -73,10 +73,10 @@ let s:key_mappings = [
       \ ]
 
 if g:QQ_map_defaults && !g:QQ_defaults_mapped
-  for key_mapping in s:key_mappings
-    let plug_name = '<Plug>' . key_mapping.plug
-    if !hasmapto(plug_name)
-      exe 'nmap' g:QQ_map_prefix . key_mapping.suffix plug_name
+  for s:key_mapping in s:key_mappings
+    let s:plug_name = '<Plug>' . s:key_mapping.plug
+    if !hasmapto(s:plug_name)
+      exe 'nmap' g:QQ_map_prefix . s:key_mapping.suffix s:plug_name
     endif
   endfor
   let g:QQ_defaults_mapped = 1

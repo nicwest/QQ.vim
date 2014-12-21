@@ -5,27 +5,23 @@ let s:R = QQ#regexp#import()
 " Open: {{{1
 function! QQ#collection#open (...) abort
   "finds the COLLECTION buffer where ever it may be
-  let l:buffer_created = 0
   let l:position = g:QQ_collection_window_location == 'top' ? 'to' : 'bo' 
   let l:height = g:QQ_collection_window_height
   if and(!bufexists(s:B.collections), !bufexists(s:B.history))
     "neither history or collections buffer exists
     sil! exe 'keepa' l:position l:height.'new' s:B.collections
-    let l:buffer_created = 1
   elseif and(!bufexists(s:B.collections), bufwinnr(s:B.history) != -1)
     "collections buffer doesn't exist, history buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.history)
     sil! exe 'badd' s:B.collections
     sil! exe 'buf' bufnr(s:B.collections) 
     sil! exe 'res' l:height
-    let l:buffer_created = 1
   elseif and(!bufexists(s:B.collections), bufexists(s:B.history))
     "collections buffer doesn't exist, history buffer exists but is not in window
     sil! exe 'keepa' l:position l:height.'sb' bufnr(s:B.history)
     sil! exe 'res' l:height
     sil! exe 'badd' s:B.collections
     sil! exe 'buf' bufnr(s:B.collections) 
-    let l:buffer_created = 1
   elseif and(bufwinnr(s:B.collections) == -1, bufwinnr(s:B.history) != -1)
     "collections buffer exists, history buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.history)
@@ -132,7 +128,7 @@ endfunction
 
 " Completion: {{{1
 
-function! QQ#collection#completion (A, L, P) abort
+function! QQ#collection#completion (...) abort
   let l:collection_list = QQ#collection#names(QQ#collection#collections(g:QQ_collection_list))
   return join(l:collection_list, "\n")
 endfunction

@@ -15,24 +15,26 @@ function! QQ#auth#oauth2() abort
   let scope = input('Scope (Optional): ')
   let redirect_url = input('Redirect URL: ', 'http://localhost:8123')
 
-  let auth_params = "?response_type=code&client_id=".client_id
-  let auth_params .= "&redirect_uri=".redirect_url
-  let auth_params .= "&state=".state
+  let auth_params = "?response_type=code&client_id=" . client_id .
+        \ "&redirect_uri=" . redirect_url .
+        \ "&state=" . state . 
+        \ "&scope=" . scope
   "TODO: add optional other bits here
 
   let server_path = expand('<sfile>:p:h')."/authserver.py"
-  call system("python -m webbrowser -t '".auth_url.auth_params."'")
-  let auth_response = system("python ".server_path)
+  call system("python -m webbrowser -t '" . auth_url . auth_params ."'")
+  let auth_response = system("python " . server_path)
   let auth_code = matchstr(auth_response, 'code=\zs[^&]\+\ze')
   "TODO: check state
   
-  let auth_token_params = "?grant_type=authorization_code"
-  let auth_token_params .= "&code=".auth_code
-  let auth_token_params .= "&client_id=".client_id
-  let auth_token_params .= "&client_secret=".client_secret
-  let auth_token_params .= "&redirect_uri=".redirect_url
+  let auth_token_params = "?grant_type=authorization_code" . 
+        \ "&code=" . auth_code .
+        \ "&client_id=" . client_id .
+        \ "&client_secret=" . client_secret .
+        \ "&redirect_uri=" . redirect_url
 
-  let access_token_response = system(g:QQ_curl_executable.' -s -X POST "'.auth_token_url.auth_token_params.'"')
+  let access_token_response = system(g:QQ_curl_executable . ' -s -X POST "' . 
+        \ auth_token_url . auth_token_params . '"')
 o  "TODO: check for errors
   let access_token = matchstr(access_token_response, '"access_token":"\zs[^"]\+\ze"')
 

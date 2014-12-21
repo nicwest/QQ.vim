@@ -102,7 +102,7 @@ endfunction
 function! QQ#utils#create_buffer(name, ...) abort
   let dimension = exists('a:1') ? a:1 : ''
   let direction = exists('a:2') ? a:2 : ''
-  sil! exe 'keepa bo '.dimension.direction.'new' name
+  sil! exe 'keepa bo ' . dimension . direction.'new' a:name
 endfunction
 
 " Error Functions: {{{1

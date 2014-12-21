@@ -1,0 +1,20 @@
+language: viml
+
+python: 2.7.6
+
+install:
+  - sudo apt-get update -q
+  - sudo apt-get install vim-gtk
+
+before_script:
+  - vim --version
+  - python --version
+  - git clone https://github.com/thinca/vim-themis
+  - git clone https://github.com/syngan/vim-vimlint /tmp/vim-vimlint
+  - git clone https://github.com/ynkdir/vim-vimlparser /tmp/vim-vimlparser
+
+script:
+  - vim-themis/bin/themis --reporter dot test
+  - sh /tmp/vim-vimlint/bin/vimlint.sh -l /tmp/vim-vimlint -p /tmp/vim-vimlparser -e EVL102.l:_=1 -c func_abort=1 autoload
+  - sh /tmp/vim-vimlint/bin/vimlint.sh -l /tmp/vim-vimlint -p /tmp/vim-vimlparser -e EVL102.l:_=1 -c func_abort=1 plugin/QQ.vim
+  - sh /tmp/vim-vimlint/bin/vimlint.sh -l /tmp/vim-vimlint -p /tmp/vim-vimlparser -e EVL102.l:_=1 -c func_abort=1 syntax/QQ.vim
