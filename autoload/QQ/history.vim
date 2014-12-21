@@ -74,7 +74,7 @@ function! s:filepath() abort
   return resolve(expand(g:QQ_current_collection))
 endfunction
 
-function! QQ#history#remove_query(queries, query)
+function! QQ#history#remove_query(queries, query) abort
   let in_previous_queries = index(a:queries, a:query)
   if in_previous_queries > -1
     call remove(a:queries, in_previous_queries)

@@ -2,7 +2,7 @@ let s:R = QQ#regexp#import()
 
 " String Functions: {{{1
 " ===============
-function! QQ#utils#strip_name(input_string)
+function! QQ#utils#strip_name(input_string) abort
   "turns ":{key}:" into "{key}"
   return substitute(a:input_string, s:R.strip_name, '\1', '')
 endfunction
@@ -75,7 +75,7 @@ function! QQ#utils#base64encode(str) abort
 endfunction
 
 " Boolean Functions: {{{1
-function! QQ#utils#falsey(input_string)
+function! QQ#utils#falsey(input_string) abort
   "if string is 0, false, or no it is falsey (normally this would include nil
   "values or empty stings, but for the moment I think these will be synonymous
   "with setting true in the context of "OPTION: :{key}: {value}", might change
@@ -87,7 +87,7 @@ function! QQ#utils#falsey(input_string)
   endif
 endfunction
 
-function! QQ#utils#truthy(input_string)
+function! QQ#utils#truthy(input_string) abort
   "if it's not falsey then it's truthy
   return 1 - QQ#utils#falsey(a:input_string)
 endfunction
@@ -106,7 +106,7 @@ function! QQ#utils#create_buffer(name, ...) abort
 endfunction
 
 " Error Functions: {{{1
-function! QQ#utils#error(type, message)
+function! QQ#utils#error(type, message) abort
   throw a:type." ERROR: ".a:message
 endfunction
 
@@ -114,7 +114,7 @@ function! QQ#utils#close_window() abort
   norm! ZQ
 endfunction
 
-function! QQ#utils#warning(type, message)
+function! QQ#utils#warning(type, message) abort
   echohl WarningMsg | echomsg a:type." WARNING: ".a:message | echohl None
 endfunction
 " Misc : {{{1
