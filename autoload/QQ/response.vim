@@ -1,3 +1,5 @@
+let s:pprint_path = expand('<sfile>:p:h:h:h')."/pprint.py"
+
 " Imports: {{{1
 let s:B = QQ#buffers#import()
 let s:R = QQ#regexp#import()
@@ -23,27 +25,27 @@ function! QQ#response#open(...) abort
     "response buffer doesn't exist, request buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.request)
     sil! exe 'badd' s:B.response
-    sil! exe 'buf' bufnr(s:B.response) 
+    sil! exe 'buf' bufnr(s:B.response)
     sil! exe 'vert res 80'
   elseif and(!bufexists(s:B.response), bufexists(s:B.request))
     "response buffer doesn't exist, request buffer exists but is not in window
     sil! exe 'keepa bo vert sb' s:B.request
     sil! exe 'vert res 80'
     sil! exe 'badd' s:B.response
-    sil! exe 'buf' bufnr('') 
+    sil! exe 'buf' bufnr('')
   elseif and(bufwinnr(s:B.response) == -1, bufwinnr(s:B.request) != -1)
     "response buffer exists, request buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.request)
-    sil! exe 'buf' bufnr(s:B.response) 
+    sil! exe 'buf' bufnr(s:B.response)
     sil! exe 'vert res 80'
   elseif bufwinnr(s:B.response) == -1
     "response buffer exists but is not in window
     sil! exe 'keepa bo vert sb' s:B.response
     sil! exe 'vert res 80'
-  else 
+  else
     call QQ#utils#focus_window_with_name(s:B.response)
   endif
-  let l:response = a:0 ? a:1 : s:last_response 
+  let l:response = a:0 ? a:1 : s:last_response
   let l:options = a:0 > 1 ? a:2 : []
   let l:mimetype = QQ#mimetypes#getmimetype(l:response)
   call QQ#response#map_keys()
@@ -113,9 +115,8 @@ function! QQ#response#populate(response, options, mimetype) abort
     if index(a:options, 'pretty-print') != -1
       let l:tmpfn = tempname()
       call writefile(split(l:body, "\n"), l:tmpfn)
-      let l:pprint_path = expand('<sfile>:p:h')."/pprint.py"
       let l:formatting_type = QQ#mimetypes#getformattingtype(a:mimetype)
-      let l:ppbody = system('python ' . l:pprint_path . ' ' . l:formatting_type . ' ' . l:tmpfn)
+      let l:ppbody = system('python ' . s:pprint_path . ' "' .  l:formatting_type . '" "' . l:tmpfn . '"')
       let l:body_split = split(l:ppbody, '\n')
     else
       let l:body_split = split(substitute(l:body, '\r\n', '\n', 'g'), '\n')
