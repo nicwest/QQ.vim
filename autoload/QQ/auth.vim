@@ -1,3 +1,4 @@
+let s:server_path = expand('<sfile>:p:h:h:h')."/authserver.py"
 " Basic {{{1
 function! QQ#auth#basic() abort
   let user = input("User: ")
@@ -21,9 +22,8 @@ function! QQ#auth#oauth2() abort
         \ "&scope=" . scope
   "TODO: add optional other bits here
 
-  let server_path = expand('<sfile>:p:h')."/authserver.py"
   call system("python -m webbrowser -t '" . auth_url . auth_params ."'")
-  let auth_response = system("python " . server_path)
+  let auth_response = system("python " . s:server_path)
   let auth_code = matchstr(auth_response, 'code=\zs[^&]\+\ze')
   "TODO: check state
   
@@ -35,7 +35,7 @@ function! QQ#auth#oauth2() abort
 
   let access_token_response = system(g:QQ_curl_executable . ' -s -X POST "' . 
         \ auth_token_url . auth_token_params . '"')
-o  "TODO: check for errors
+  "TODO: check for errors
   let access_token = matchstr(access_token_response, '"access_token":"\zs[^"]\+\ze"')
 
   call append(line("$"), ["HEADER: :Authorization: Bearer ".access_token])
