@@ -18,22 +18,22 @@ let s:base_curl_query = g:QQ_curl_executable . " -si -w '\\r\\n".
 " Open: {{{1
 function! QQ#response#open(...) abort
   "finds the RESPONSE buffer where ever it may be
-  if and(!bufexists(s:B.response), !bufexists(s:B.request))
+  if !bufexists(s:B.response) && !bufexists(s:B.request)
     "neither request or response buffer exists
     sil! exe 'keepa bo 80vnew' s:B.response
-  elseif and(!bufexists(s:B.response), bufwinnr(s:B.request) != -1)
+  elseif !bufexists(s:B.response) && bufwinnr(s:B.request) != -1
     "response buffer doesn't exist, request buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.request)
     sil! exe 'badd' s:B.response
     sil! exe 'buf' bufnr(s:B.response)
     sil! exe 'vert res 80'
-  elseif and(!bufexists(s:B.response), bufexists(s:B.request))
+  elseif !bufexists(s:B.response) && bufexists(s:B.request)
     "response buffer doesn't exist, request buffer exists but is not in window
     sil! exe 'keepa bo vert sb' s:B.request
     sil! exe 'vert res 80'
     sil! exe 'badd' s:B.response
     sil! exe 'buf' bufnr('')
-  elseif and(bufwinnr(s:B.response) == -1, bufwinnr(s:B.request) != -1)
+  elseif bufwinnr(s:B.response) == -1 && bufwinnr(s:B.request) != -1
     "response buffer exists, request buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.request)
     sil! exe 'buf' bufnr(s:B.response)

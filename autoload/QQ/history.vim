@@ -10,22 +10,22 @@ function! QQ#history#open(...) abort
   "finds the HISTORY buffer where ever it may be
   let l:position = g:QQ_collection_window_location == 'top' ? 'to' : 'bo' 
   let l:height = g:QQ_collection_window_height
-  if and(!bufexists(s:B.history), !bufexists(s:B.collections))
+  if !bufexists(s:B.history) && !bufexists(s:B.collections)
     "neither collections or history buffer exists
     sil! exe 'keepa' l:position l:height.'new' s:B.history
-  elseif and(!bufexists(s:B.history), bufwinnr(s:B.collections) != -1)
+  elseif !bufexists(s:B.history) && bufwinnr(s:B.collections) != -1
     "history buffer doesn't exist, collections buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.collections)
     sil! exe 'badd' s:B.history
     sil! exe 'buf' bufnr(s:B.history) 
     sil! exe 'res' l:height
-  elseif and(!bufexists(s:B.history), bufexists(s:B.collections))
+  elseif !bufexists(s:B.history) && bufexists(s:B.collections)
     "history buffer doesn't exist, collections buffer exists but is not in window
     sil! exe 'keepa' l:position l:height.'sb' bufnr(s:B.collections)
     sil! exe 'res' l:height
     sil! exe 'badd' s:B.history
     sil! exe 'buf' bufnr(s:B.history) 
-  elseif and(bufwinnr(s:B.history) == -1, bufwinnr(s:B.collections) != -1)
+  elseif bufwinnr(s:B.history) == -1 && bufwinnr(s:B.collections) != -1
     "history buffer exists, collections buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.collections)
     sil! exe 'buf' bufnr(s:B.history) 

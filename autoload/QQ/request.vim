@@ -22,22 +22,22 @@ let s:query_arg_order = [
 " Open: {{{1
 function! QQ#request#open(...) abort
   "finds the REQUEST buffer where ever it may be
-  if and(!bufexists(s:B.request), !bufexists(s:B.response))
+  if !bufexists(s:B.request) && !bufexists(s:B.response)
     "neither request or response buffer exists
     sil! exe 'keepa bo 50vnew' s:B.request
-  elseif and(!bufexists(s:B.request), bufwinnr(s:B.response) != -1)
+  elseif !bufexists(s:B.request) && bufwinnr(s:B.response) != -1
     "request buffer doesn't exist, response buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.response)
     sil! exe 'badd' s:B.request
     sil! exe 'buf' bufnr(s:B.request) 
     sil! exe 'vert res 50'
-  elseif and(!bufexists(s:B.request), bufexists(s:B.response))
+  elseif !bufexists(s:B.request) && bufexists(s:B.response)
     "request buffer doesn't exist, response buffer exists but is not in window
     sil! exe 'keepa bo vert sb' s:B.response
     sil! exe 'vert res 50'
     sil! exe 'badd' s:B.request
     sil! exe 'buf' bufnr(s:B.request) 
-  elseif and(bufwinnr(s:B.request) == -1, bufwinnr(s:B.response) != -1)
+  elseif bufwinnr(s:B.request) == -1 && bufwinnr(s:B.response) != -1
     "request buffer exists, response buffer exists and is in window
     call QQ#utils#focus_window_with_name(s:B.response)
     sil! exe 'buf' bufnr(s:B.request) 
