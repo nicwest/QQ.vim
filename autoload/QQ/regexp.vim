@@ -26,7 +26,7 @@ let s:R.collection_path = '^\(\[.\+\]\s*\)\?\zs.*\ze$'
 " Curl: {{{1
 
 let s:R.curl_method =  '-X\s\zs.\{-}\ze\s'
-let s:R.curl_url = '\s"\zs[a-zA-Z]\+:\/\/.\{-}\ze"$'
+let s:R.curl_url = '\s\("\|''\)\zs[a-zA-Z]\+:\/\/.\{-}\ze\1$'
 let s:R.curl_url_param_name = '^\zs.\+\ze='
 let s:R.curl_url_param_value = '=\zs.\+\ze$'
 let s:R.curl_header = '-H\s\([''"]\)\zs.\{-}\ze\1'
