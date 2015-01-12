@@ -146,11 +146,13 @@ function! QQ#query#get_query_args(query) abort
   let l:query_args .= l:headers
   let l:query_args .= l:data
 
-  let l:url_with_params = ' "'.l:url.l:params.'"'
+  let l:url_with_params = l:url . l:params
   let l:url_with_vars = QQ#query#sub_url_vars(a:query, l:url_with_params)
   
-  let l:query_args_with_vars = l:query_args.l:url_with_vars
-  let l:query_args .= l:url_with_params
+  let l:query_args_with_vars = l:query_args . ' ' .
+        \ escape(shellescape(l:url_with_vars, 1), '{}$')
+  let l:query_args .=  ' ' . 
+        \ escape(shellescape(l:url_with_params, 1), '{}$')
 
   return [l:query_args, l:query_args_with_vars]
 endfunction

@@ -12,6 +12,9 @@ let s:test_response = "HTTP/1.0 302 FOUND\r\n" .
 let s:test_curl_request = 'curl -si -w -L -X GET '.
       \ '-H "Cache-Control:no-cache" --data "test=test&foo=foo" ' .
       \ '"http://localhost:8000?testparam=test"'
+let s:test_curl_request_quotes = 'curl -si -w -L -X GET '.
+      \ '-H "Cache-Control:no-cache" --data "test=test&foo=foo" ' .
+      \ '''http://localhost:8000?testparam=test'''
 let s:test_curl_request_form = 'curl -si -w -L -X GET '.
       \ '-H "Cache-Control:no-cache" --form "test=test&foo=foo" ' .
       \ '"http://localhost:8000?testparam=test"'
@@ -98,6 +101,7 @@ endfunction
 
 function! s:suite.curl_url()
   call s:assert.equals(matchstr(s:test_curl_request, s:R.curl_url), 'http://localhost:8000?testparam=test')
+  call s:assert.equals(matchstr(s:test_curl_request_quotes, s:R.curl_url), 'http://localhost:8000?testparam=test')
 endfunction
 
 function! s:suite.curl_url_param_name()

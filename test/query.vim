@@ -252,8 +252,8 @@ let s:test_query = {
       \ 'OPTION': [['pretty-print', 'True']]
       \}
 
-let s:test_query_args = ' -X GET -H "Cache-Control:no-cache" --data "test=foo" "https://www.googleapis.com/urlshortener/v1/url?shortUrl=:url:&key=:api-key:"'
-let s:test_query_args_with_vars = ' -X GET -H "Cache-Control:no-cache" --data "test=foo" "https://www.googleapis.com/urlshortener/v1/url?shortUrl=https://weareleto.com&key=123123"'
+let s:test_query_args = ' -X GET -H "Cache-Control:no-cache" --data "test=foo" ''https://www.googleapis.com/urlshortener/v1/url?shortUrl=:url:&key=:api-key:'''
+let s:test_query_args_with_vars = ' -X GET -H "Cache-Control:no-cache" --data "test=foo" ''https://www.googleapis.com/urlshortener/v1/url?shortUrl=https://weareleto.com&key=123123'''
 
 function! s:suite.get_base_query_str()
   let l:base_query_str = QQ#query#get_base_query_str()

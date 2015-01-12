@@ -193,7 +193,7 @@ function! s:suite.save_saves_query()
   call QQ#history#save({'METHOD': ['TESTQUERY'], 'URL': ['http://test.com']})
   let l:result = readfile(expand(g:QQ_current_collection))
   let g:QQ_current_collection = g:QQ_default_collection
-  call s:assert.equals(l:result, [s:curl_str_with_time.' -X TESTQUERY "http://test.com"'])
+  call s:assert.equals(l:result, [s:curl_str_with_time.' -X TESTQUERY ''http://test.com'''])
 endfunction
 
 function! s:suite.save_query_updates_history_buffer_when_in_window()
