@@ -57,7 +57,7 @@ function! QQ#collection#populate() abort
   setl ma
   norm gg"_dG
   call append(0, b:collections)
-  norm Gddgg
+  norm G"_ddgg
   setl noma
 endfunction
 

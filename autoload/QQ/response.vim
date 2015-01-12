@@ -125,7 +125,7 @@ function! QQ#response#populate(response, options, mimetype) abort
     let l:response = l:headers . "\r\n\r\n" . l:timeblock . "\r\n\r\n"
     call append(0, split(l:response, "\r\n") + l:body_split)
   endif
-  normal! Gddgg
+  normal! G"_ddgg
   setlocal noma
 endfunction
 

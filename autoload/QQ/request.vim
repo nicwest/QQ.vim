@@ -108,7 +108,7 @@ function! QQ#request#populate(...)  abort
   endfor
   normal! gg"_dG
   call append(0, lines)
-  normal! Gddgg
+  normal! G"_ddgg
 endfunction
 
 

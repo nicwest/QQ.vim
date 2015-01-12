@@ -64,7 +64,7 @@ function! QQ#history#populate() abort
   call map(displaylist, 'matchstr(v:val, s:R.curl_method) . "\t" . ' . 
         \ 'matchstr(v:val, s:R.curl_url)')
   call append(0, displaylist)
-  norm Gddgg
+  norm G"_ddgg
   setl noma
 endfunction
 
