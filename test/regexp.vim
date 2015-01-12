@@ -118,9 +118,12 @@ function! s:suite.curl_header()
   call s:assert.equals(matchstr(s:test_curl_request, s:R.curl_header), 'Cache-Control:no-cache')
 endfunction
 
-function! s:suite.curl_data_or_form()
-  call s:assert.equals(matchstr(s:test_curl_request, s:R.curl_data_or_form), 'test=test&foo=foo')
-  call s:assert.equals(matchstr(s:test_curl_request_form, s:R.curl_data_or_form), 'test=test&foo=foo')
+function! s:suite.curl_form()
+  call s:assert.equals(matchstr('something somthing -F ''test=foo'' something something', s:R.curl_form), 'test=foo')
+endfunction
+
+function! s:suite.curl_data()
+  call s:assert.equals(matchstr('something somthing -d ''test=foo'' something something', s:R.curl_data), 'test=foo')
 endfunction
 
 function! s:suite.curl_data_fields()

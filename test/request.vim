@@ -61,8 +61,8 @@ let s:default_query =  {
       \ "URL-VAR": [["testvar", "users"]], 
       \ "URL-PARAM": [["testparam", "test"]],
       \ "HEADER": [["Cache-Control", "no-cache"]], 
-      \ "DATA": [],
-      \ "DATA-FILE": [],
+      \ "FORM": [],
+      \ "FORM-FILE": [],
       \ "BODY": [],
       \ "OPTION": [["pretty-print", "True"]]
       \ }

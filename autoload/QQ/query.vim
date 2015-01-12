@@ -43,38 +43,31 @@ endfunction
 
 " Data: {{{1
 function! QQ#query#get_data(query) abort
-  let l:data = get(a:query, 'DATA', [])
-  let l:files = get(a:query, 'DATA-FILE', [])
+  let l:data = get(a:query, 'FORM', [])
+  let l:files = get(a:query, 'FORM-FILE', [])
+  let l:body = get(a:query, 'BODY', [])
+  echo a:query
   let l:args = ''
-  if len(l:data) || len(l:files)
-    if len(l:files)
-      let l:args .= ' --form "'
-    else
-      let l:args .= ' --data "'
-    endif
-    let l:first = 1
+  if len(l:data)
     for [name, value] in l:data
-      if first
-        let l:first = 0
-      else
-        let l:args .= '&'
-      endif
-      let l:args .= QQ#utils#strip(name).'='.QQ#utils#strip(value)
+      let l:args .= ' -F ' . shellescape(
+            \ QQ#utils#strip(name) . '=' . QQ#utils#strip(value)) 
     endfor
+  endif
+  if len(l:files)
     for [name, path] in l:files
-      if first
-        let first = 0
-      else
-        let l:args .= '&'
-      endif
       if !filereadable(expand(QQ#utils#strip(path)))
         call QQ#utils#warning('REQUEST',
               \ 'File not readable: ' . QQ#utils#strip(path))
         continue
       endif
-      let l:args .= QQ#utils#strip(name).'=@'. expand(QQ#utils#strip(path))
+      let l:args .= ' -F ' . shellescape( 
+            \ QQ#utils#strip(name) . '=@' . expand(QQ#utils#strip(path)))
     endfor
-    let l:args .= '"'
+  endif
+  if len(l:body)
+    let l:args = ' -d ' . substitute(shellescape(join(l:body, "\n")),
+          \ '\\\n' , "\n", 'g')
   endif
   return l:args
 endfunction
@@ -181,8 +174,8 @@ function! QQ#query#convert(query_str) abort
         \ "URL-VAR": [],
         \ "URL-PARAM": [],
         \ "HEADER": [],
-        \ "DATA": [],
-        \ "DATA-FILE": [],
+        \ "FORM": [],
+        \ "FORM-FILE": [],
         \ "BODY": [],
         \ "OPTION": [],
         \}
@@ -197,10 +190,14 @@ function! QQ#query#convert(query_str) abort
   call add(l:query.URL, url)
   call add(l:query.METHOD, matchstr(a:query_str, s:R.curl_method))
   let l:query.HEADER = map(QQ#utils#matchstr_multiple(a:query_str, s:R.curl_header), 'split(v:val, ":")')
-  let data_or_form = matchstr(a:query_str, s:R.curl_data_or_form)
-  let data_or_form_fields = map(QQ#utils#matchstr_multiple(data_or_form, s:R['curl_data_fields']), 'split(v:val, "=")')
-  let l:query.DATA = filter([] + data_or_form_fields, 'v:val[1][0] != "@"') 
-  let l:query['DATA-FILE'] = map(filter([] + data_or_form_fields, 'v:val[1][0] == "@"'), '[v:val[0], v:val[1][1:]]')
+  let l:form = matchstr(a:query_str, s:R.curl_form)
+  let l:form_fields = map(QQ#utils#matchstr_multiple(l:form, s:R['curl_data_fields']), 'split(v:val, "=")')
+  let l:query.FORM = filter([] + l:form_fields, 'v:val[1][0] != "@"') 
+  let l:query['FORM-FILE'] = map(filter([] + l:form_fields, 'v:val[1][0] == "@"'), '[v:val[0], v:val[1][1:]]')
+  let l:data = matchstr(a:query_str, s:R.curl_data)
+  if len(l:data)
+    let l:query.BODY = split(l:data, "\n")
+  endif
   return l:query
 endfunction
 

@@ -62,18 +62,18 @@ displaying response's. Current option options are:
 * `follow` if this option is set to true the response will follow all redirects,
   otherwise will only return the first response
 
-`DATA: :<data name>: <data value>`
+`FORM: :<FORM name>: <FORM value>`
 
 Data field, this is data sent to the URL, for example form field's sent as part
 of a post request 
 
-`DATA-FILE: :<data name>: <file location>`
+`FORM-FILE: :<FORM name>: <file location>`
 
 File field, this file will be uploaded to the given URL with the specified name. 
 
 `BODY: <body>`
 
-Body, at the moment this does nothing :)
+Body, sends everything after this as raw POST body. 
 
 ###Key binds###
 
@@ -119,9 +119,9 @@ URL-PARAM: :format: json
 HEADER:	:Cache-Control: no-cache
 OPTION:	:pretty-print: True
 OPTION:	:follow: True
-DATA: :email: bob@example.com
-DATA: :name: Bob McBobson
-DATA-FILE: :photo: ~/Photos/notporn.jpg
+FORM: :email: bob@example.com
+FORM: :name: Bob McBobson
+FORM-FILE: :photo: ~/Photos/notporn.jpg
 ```
 
 Options

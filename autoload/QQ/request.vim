@@ -9,15 +9,15 @@ let s:last_query = {
       \ "URL-VAR": [["testvar", "users"]], 
       \ "URL-PARAM": [["testparam", "test"]],
       \ "HEADER": [["Cache-Control", "no-cache"]], 
-      \ "DATA": [],
-      \ "DATA-FILE": [],
+      \ "FORM": [],
+      \ "FORM-FILE": [],
       \ "BODY": [],
       \ "OPTION": [["pretty-print", "True"]]
       \ }
 
 let s:query_arg_order = [
-      \ 'METHOD', 'URL', 'URL-PARAM', 'URL-VAR', 'DATA', 'DATA-FILE',
-      \ 'HEADER', 'OPTION', 'BODY']
+      \ 'METHOD', 'URL', 'URL-PARAM', 'URL-VAR', 'HEADER', 'OPTION', 'FORM',
+      \ 'FORM-FILE', 'BODY']
 
 " Open: {{{1
 function! QQ#request#open(...) abort
@@ -71,8 +71,18 @@ endfunction
 " Convert: {{{1
 function! QQ#request#convert() abort
   let request = {}
+  let l:is_body = 0
   for line in getbufline(bufnr(s:B.request), 0, line('$'))
-    if line =~# s:R.request_line_ptrn
+    if line =~# s:R.body_line_ptrn 
+      let l:rest = matchlist(line, s:R.body_line_ptrn)[1]
+      let request.BODY = []
+      if len(l:rest) > 0
+        call add(request.BODY, l:rest)
+      endif
+      let l:is_body = 1
+    elseif l:is_body
+      call add(request.BODY, line)
+    elseif line =~# s:R.request_line_ptrn
       let group = matchlist(line, s:R.request_line_ptrn)
       let line_attr = group[1]
       let line_name = QQ#utils#strip_name(group[2])
@@ -87,6 +97,7 @@ function! QQ#request#convert() abort
       endif
     endif
   endfor
+  echo request
   return request
 endfunction
 
@@ -97,6 +108,9 @@ function! QQ#request#populate(...)  abort
   let lines = []
   let items = map(copy(s:query_arg_order), '[v:val, get(query, v:val, [])]')
   for item in items 
+    if item[0] == 'BODY'
+      continue
+    endif
     for attr in item[1]
       if type(attr) == type([])
         call add(lines, item[0].":\t:".attr[0].": ".attr[1])
@@ -106,6 +120,10 @@ function! QQ#request#populate(...)  abort
       unlet attr
     endfor
   endfor
+  if has_key(query, 'BODY') && len(query.BODY) > 0
+    call add(lines, 'BODY:')
+    call extend(lines, query.BODY)
+  endif
   normal! gg"_dG
   call append(0, lines)
   normal! G"_ddgg

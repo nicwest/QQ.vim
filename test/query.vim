@@ -88,46 +88,46 @@ function! s:suite.get_data_no_data()
 endfunction
 
 function! s:suite.get_data_with_data()
-  let l:test_query = {'DATA': [['test', 'foo']]}
+  let l:test_query = {'FORM': [['test', 'foo']]}
   let l:args = QQ#query#get_data(l:test_query)
-  call s:assert.equals(l:args, ' --data "test=foo"')
+  call s:assert.equals(l:args, ' -F ''test=foo''')
 endfunction
 
 function! s:suite.get_data_with_multiple_data()
-  let l:test_query = {'DATA': [['test', 'foo'], ['bosh', 'lol']]}
+  let l:test_query = {'FORM': [['test', 'foo'], ['bosh', 'lol']]}
   let l:args = QQ#query#get_data(l:test_query)
-  call s:assert.equals(l:args, ' --data "test=foo&bosh=lol"')
+  call s:assert.equals(l:args, ' -F ''test=foo'' -F ''bosh=lol''')
 endfunction
 
 function! s:suite.get_data_with_file()
   let l:file_existing = getcwd() . "/README.md"
-  let l:test_query = {'DATA-FILE': [['test', l:file_existing]]}
+  let l:test_query = {'FORM-FILE': [['test', l:file_existing]]}
   let l:args = QQ#query#get_data(l:test_query)
-  call s:assert.equals(l:args, ' --form "test=@'.l:file_existing.'"')
+  call s:assert.equals(l:args, ' -F ''test=@'.l:file_existing.'''')
 endfunction
 
 function! s:suite.get_data_with_mutliple_files()
   let l:readme = getcwd() . "/README.md"
   let l:gitignore = getcwd() . "/.gitignore"
-  let l:test_query = {'DATA-FILE': [['readme', l:readme], ['gitignore', l:gitignore]]}
+  let l:test_query = {'FORM-FILE': [['readme', l:readme], ['gitignore', l:gitignore]]}
   let l:args = QQ#query#get_data(l:test_query)
-  call s:assert.equals(l:args, ' --form "readme=@'.l:readme.'&gitignore=@'.l:gitignore.'"')
+  call s:assert.equals(l:args, ' -F ''readme=@'.l:readme.''' -F ''gitignore=@'.l:gitignore.'''')
 endfunction
 
 function! s:suite.get_data_with_file_doesnt_exist()
   let l:file_missing = getcwd() . "/porn.jpg"
-  let l:test_query = {'DATA-FILE': [['test', l:file_missing]]}
+  let l:test_query = {'FORM-FILE': [['test', l:file_missing]]}
   let l:args = QQ#query#get_data(l:test_query)
-  call s:assert.equals(l:args, ' --form ""')
+  call s:assert.equals(l:args, '')
 endfunction
 
 function! s:suite.get_data_with_data_and_file()
   let l:readme = getcwd() . "/README.md"
   let l:test_query = {
-        \ 'DATA': [['foo', 'bar']],
-        \ 'DATA-FILE': [['test', l:readme]]}
+        \ 'FORM': [['foo', 'bar']],
+        \ 'FORM-FILE': [['test', l:readme]]}
   let l:args = QQ#query#get_data(l:test_query)
-  call s:assert.equals(l:args, ' --form "foo=bar&test=@'.l:readme.'"')
+  call s:assert.equals(l:args, ' -F ''foo=bar'' -F ''test=@'.l:readme.'''')
 endfunction
 
 " Headers: {{{1
@@ -248,12 +248,12 @@ let s:test_query = {
       \ 'URL-VAR': [['url', 'https://weareleto.com'], ['api-key', '123123']],
       \ 'URL-PARAM': [['shortUrl', ':url:'], ['key', ':api-key:']],
       \ 'HEADER': [['Cache-Control', 'no-cache']],
-      \ 'DATA': [['test', 'foo']],
+      \ 'FORM': [['test', 'foo']],
       \ 'OPTION': [['pretty-print', 'True']]
       \}
 
-let s:test_query_args = ' -X GET -H "Cache-Control:no-cache" --data "test=foo" ''https://www.googleapis.com/urlshortener/v1/url?shortUrl=:url:&key=:api-key:'''
-let s:test_query_args_with_vars = ' -X GET -H "Cache-Control:no-cache" --data "test=foo" ''https://www.googleapis.com/urlshortener/v1/url?shortUrl=https://weareleto.com&key=123123'''
+let s:test_query_args = ' -X GET -H "Cache-Control:no-cache" -F ''test=foo'' ''https://www.googleapis.com/urlshortener/v1/url?shortUrl=:url:&key=:api-key:'''
+let s:test_query_args_with_vars = ' -X GET -H "Cache-Control:no-cache" -F ''test=foo'' ''https://www.googleapis.com/urlshortener/v1/url?shortUrl=https://weareleto.com&key=123123'''
 
 function! s:suite.get_base_query_str()
   let l:base_query_str = QQ#query#get_base_query_str()
@@ -303,7 +303,7 @@ function! s:suite.execute()
   call s:assert.equals(l:response_list[4], 'GET')
   call s:assert.equals(l:response_list[5], '-H')
   call s:assert.equals(l:response_list[6], 'Cache-Control:no-cache')
-  call s:assert.equals(l:response_list[7], '--data')
+  call s:assert.equals(l:response_list[7], '-F')
   call s:assert.equals(l:response_list[8], 'test=foo')
   call s:assert.equals(l:response_list[9], 'https://www.googleapis.com/urlshortener/v1/url?shortUrl=https://weareleto.com&key=123123')
 endfunction
