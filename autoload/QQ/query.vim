@@ -150,9 +150,9 @@ function! QQ#query#get_query_args(query) abort
   let l:url_with_vars = QQ#query#sub_url_vars(a:query, l:url_with_params)
   
   let l:query_args_with_vars = l:query_args . ' ' .
-        \ escape(shellescape(l:url_with_vars, 1), '{}$')
-  let l:query_args .=  ' ' . 
-        \ escape(shellescape(l:url_with_params, 1), '{}$')
+        \ substitute(escape(shellescape(l:url_with_vars, 1), '{}$'),
+        \ " ", "%20", "g")
+  let l:query_args .=  ' ' . shellescape(l:url_with_params)
 
   return [l:query_args, l:query_args_with_vars]
 endfunction
