@@ -144,6 +144,21 @@ List of configurable options for the plugin:
 * `g:QQ_map_prefix` the prefix to key maps, default `Q`
 * `g:QQ_map_defaults` if you want to turn the default mappings off, default
   `0`
+
+Tests
+-----
+
+Tests are written for [vim-themis](https://github.com/thinca/vim-themis)
+
+To run tests, clone vim-themis, and simply run the tests:
+
+```
+git clone https://github.com/thinca/vim-themis.git 
+vim-themis/bin/themis --reporter dot test
+```
+
+If you want to add anything to QQ please think about writing a test for it!
+
  
 Notes
 -----
