@@ -2,6 +2,13 @@ language: viml
 
 python: 2.7.6
 
+branches:
+  only:
+    - master
+    - develop
+    - /^feat(ure)?-.*$/
+    - /^(hot)?fix-.*$/
+
 install:
   - sudo apt-get update -q
   - sudo apt-get install vim-gtk
