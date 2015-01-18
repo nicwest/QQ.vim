@@ -1,14 +1,15 @@
 " Used for local development, with vim-scriptease
-Runtime ~/Sideprojects/QQ.vim/syntax/QQ.vim
-Runtime ~/Sideprojects/QQ.vim/plugin/QQ.vim
-Runtime ~/Sideprojects/QQ.vim/autoload/QQ/regexp.vim
-Runtime ~/Sideprojects/QQ.vim/autoload/QQ/query.vim
-Runtime ~/Sideprojects/QQ.vim/autoload/QQ/buffers.vim
-Runtime ~/Sideprojects/QQ.vim/autoload/QQ/utils.vim
-Runtime ~/Sideprojects/QQ.vim/autoload/QQ/request.vim
-Runtime ~/Sideprojects/QQ.vim/autoload/QQ/auth.vim
-Runtime ~/Sideprojects/QQ.vim/autoload/QQ/response.vim
-Runtime ~/Sideprojects/QQ.vim/autoload/QQ/history.vim
-Runtime ~/Sideprojects/QQ.vim/autoload/QQ/mimetypes.vim
-Runtime ~/Sideprojects/QQ.vim/autoload/QQ/collection.vim
-Runtime ~/Sideprojects/QQ.vim/autoload/QQ.vim
+let s:path = expand('<sfile>:p:h')
+exe 'Runtime'  s:path . '/syntax/QQ.vim'
+exe 'Runtime'  s:path . '/plugin/QQ.vim'
+exe 'Runtime'  s:path . '/autoload/QQ/regexp.vim'
+exe 'Runtime'  s:path . '/autoload/QQ/query.vim'
+exe 'Runtime'  s:path . '/autoload/QQ/buffers.vim'
+exe 'Runtime'  s:path . '/autoload/QQ/utils.vim'
+exe 'Runtime'  s:path . '/autoload/QQ/request.vim'
+exe 'Runtime'  s:path . '/autoload/QQ/auth.vim'
+exe 'Runtime'  s:path . '/autoload/QQ/response.vim'
+exe 'Runtime'  s:path . '/autoload/QQ/history.vim'
+exe 'Runtime'  s:path . '/autoload/QQ/mimetypes.vim'
+exe 'Runtime'  s:path . '/autoload/QQ/collection.vim'
+exe 'Runtime'  s:path . '/autoload/QQ.vim'
