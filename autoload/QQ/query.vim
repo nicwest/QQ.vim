@@ -46,7 +46,6 @@ function! QQ#query#get_data(query) abort
   let l:data = get(a:query, 'FORM', [])
   let l:files = get(a:query, 'FORM-FILE', [])
   let l:body = get(a:query, 'BODY', [])
-  echo a:query
   let l:args = ''
   if len(l:data)
     for [name, value] in l:data
@@ -190,7 +189,7 @@ function! QQ#query#convert(query_str) abort
   call add(l:query.URL, url)
   call add(l:query.METHOD, matchstr(a:query_str, s:R.curl_method))
   let l:query.HEADER = map(QQ#utils#matchstr_multiple(a:query_str, s:R.curl_header), 'split(v:val, ":")')
-  let l:form = matchstr(a:query_str, s:R.curl_form)
+  let l:form = QQ#utils#matchstr_multiple(a:query_str, s:R.curl_form)
   let l:form_fields = map(QQ#utils#matchstr_multiple(l:form, s:R['curl_data_fields']), 'split(v:val, "=")')
   let l:query.FORM = filter([] + l:form_fields, 'v:val[1][0] != "@"') 
   let l:query['FORM-FILE'] = map(filter([] + l:form_fields, 'v:val[1][0] == "@"'), '[v:val[0], v:val[1][1:]]')

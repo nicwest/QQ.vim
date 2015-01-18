@@ -310,8 +310,77 @@ endfunction
 
 " Convert: {{{1
 
-function! s:suite.convert_creates_correct_query()
-  "TODO: test this 
+function! s:suite.convert_handles_multiple_form_fields()
+  let l:curl_str = 'something -F ''foo=pew'' -F ''boo=bar'' something'
+  let l:query = QQ#query#convert(l:curl_str)
+  call s:assert.equals(l:query.FORM, [['foo', 'pew'], ['boo', 'bar']])
+endfunction
+
+function! s:suite.convert_handles_form_and_form_files()
+  let l:curl_str = 'something -F ''foo=pew'' -F ''boo=@bar'' something'
+  let l:query = QQ#query#convert(l:curl_str)
+  call s:assert.equals(l:query['FORM-FILE'], [['boo', 'bar']])
+  call s:assert.equals(l:query.FORM, [['foo', 'pew']])
+endfunction
+
+function! s:suite.convert_matches_url()
+  let l:curl_str = 'something ''http://pewpew.com'''
+  let l:query = QQ#query#convert(l:curl_str)
+  call s:assert.equals(l:query.URL, ['http://pewpew.com'])
+endfunction
+
+function! s:suite.convert_gets_url_params()
+  let l:curl_str = 'something ''http://pewpew.com?foo=bar'''
+  let l:query = QQ#query#convert(l:curl_str)
+  call s:assert.equals(l:query['URL-PARAM'], [['foo', 'bar']])
+endfunction
+
+function! s:suite.convert_gets_multiple_url_params()
+  let l:curl_str = 'something ''http://pewpew.com?foo=bar&pewpew=pow'''
+  let l:query = QQ#query#convert(l:curl_str)
+  call s:assert.equals(l:query['URL-PARAM'], [['foo', 'bar'], ['pewpew', 'pow']])
+endfunction
+
+function! s:suite.convert_gets_method()
+  let l:curl_str = 'something -X GET something'
+  let l:query = QQ#query#convert(l:curl_str)
+  call s:assert.equals(l:query.METHOD, ['GET'])
+endf
+
+function! s:suite.convert_gets_method_only_once()
+  let l:curl_str = 'something -X GET -X POST something'
+  let l:query = QQ#query#convert(l:curl_str)
+  call s:assert.equals(l:query.METHOD, ['GET'])
+endf
+
+function! s:suite.convert_gets_header()
+  let l:curl_str = 'something -H ''Content-type:pew'' something'
+  let l:query = QQ#query#convert(l:curl_str)
+  call s:assert.equals(l:query.HEADER, [['Content-type', 'pew']])
+endf
+
+function! s:suite.convert_gets_multiple_headers()
+  let l:curl_str = 'something -H ''Content-type:pew'' -H ''foo:pew'' something'
+  let l:query = QQ#query#convert(l:curl_str)
+  call s:assert.equals(l:query.HEADER, [['Content-type', 'pew'], ['foo', 'pew']])
+endf
+
+function! s:suite.convert_gets_body()
+  let l:curl_str = 'something -d ''THIS IS BODY'' something'
+  let l:query = QQ#query#convert(l:curl_str)
+  call s:assert.equals(l:query.BODY, ['THIS IS BODY'])
+endf
+
+function! s:suite.convert_gets_multiple_line_body()
+  let l:curl_str = 'something -d ''THIS IS BODY' . "\n" . 'THIS IS ALSO BODY'' something'
+  let l:query = QQ#query#convert(l:curl_str)
+  call s:assert.equals(l:query.BODY, ['THIS IS BODY', 'THIS IS ALSO BODY'])
+endf
+
+function! s:suite.convert_doesnt_return_empty_string_when_body_is_empty()
+  let l:curl_str = 'something something'
+  let l:query = QQ#query#convert(l:curl_str)
+  call s:assert.equals(l:query.BODY, [])
 endfunction
 
 

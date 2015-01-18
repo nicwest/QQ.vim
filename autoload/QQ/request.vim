@@ -97,7 +97,6 @@ function! QQ#request#convert() abort
       endif
     endif
   endfor
-  echo request
   return request
 endfunction
 
