@@ -62,12 +62,12 @@ displaying response's. Current option options are:
 * `follow` if this option is set to true the response will follow all redirects,
   otherwise will only return the first response
 
-`FORM: :<FORM name>: <FORM value>`
+`FORM: :<field name>: <field value>`
 
 Data field, this is data sent to the URL, for example form field's sent as part
 of a post request 
 
-`FORM-FILE: :<FORM name>: <file location>`
+`FORM-FILE: :<field name>: <file location>`
 
 File field, this file will be uploaded to the given URL with the specified name. 
 
