@@ -116,7 +116,7 @@ function! QQ#response#populate(response, options, mimetype) abort
       let l:tmpfn = tempname()
       call writefile(split(l:body, "\n"), l:tmpfn)
       let l:formatting_type = QQ#mimetypes#getformattingtype(a:mimetype)
-      let l:ppbody = system('python ' . s:pprint_path . ' "' .  l:formatting_type . '" "' . l:tmpfn . '"')
+      let l:ppbody = system(g:QQ_python_executable . ' ' . s:pprint_path . ' "' .  l:formatting_type . '" "' . l:tmpfn . '"')
       let l:body_split = split(l:ppbody, '\n')
     else
       let l:body_split = split(substitute(l:body, '\r\n', '\n', 'g'), '\n')

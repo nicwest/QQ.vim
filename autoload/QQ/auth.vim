@@ -22,8 +22,8 @@ function! QQ#auth#oauth2() abort
         \ "&scope=" . scope
   "TODO: add optional other bits here
 
-  call system("python -m webbrowser -t '" . auth_url . auth_params ."'")
-  let auth_response = system("python " . s:server_path)
+  call system(g:QQ_python_executable . " -m webbrowser -t '" . auth_url . auth_params ."'")
+  let auth_response = system(g:QQ_python_executable . ' ' . s:server_path)
   let auth_code = matchstr(auth_response, 'code=\zs[^&]\+\ze')
   "TODO: check state
   

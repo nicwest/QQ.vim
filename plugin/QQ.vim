@@ -11,6 +11,11 @@ if !exists('g:QQ_curl_executable')
   let g:QQ_curl_executable = 'curl'
 endif
 
+if !exists('g:QQ_python_executable')
+  "python3 is broken and I'm too lazy to learn it.
+  let g:QQ_python_executable = 'python'
+endif
+
 if !exists('g:QQ_default_collection')
   "default collection location
   let g:QQ_default_collection = '~/.QQ.default.collection'

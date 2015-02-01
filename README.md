@@ -94,12 +94,12 @@ Body, sends everything after this as raw POST body.
 * `QAB` adds basic authentication to the current request
 * `QAO` adds oAuth2 to the current request
 
-**from a RESPONSE buffer**
+**from a RESPONSE buffer
 
 * `QQ` returns to the previous REQUEST buffer
 * `q` closes the buffer
 
-**from a HISTORY buffer**
+**from a HISTORY buffer
 
 * `<CR>` loads previous request into REQUEST buffer
 * `q` closes the buffer
@@ -130,6 +130,7 @@ Options
 List of configurable options for the plugin:
 
 * `g:QQ_curl_executable` the executable to run request's with. default `'curl'`
+* `g:QQ_python_executable` the executable preferred python2 executable `'python'`
 * `g:QQ_default_collection` location of the default history collection. default:
   `'~/.QQ.default.collection'`
 * `g:QQ_current_collection` location of the loaded collection. default
