@@ -6,7 +6,7 @@ import xml.dom.minidom as xml
 def _json(infile, outfile):
     try:
         obj = json.load(infile)
-    except ValueError, e:
+    except ValueError as e:
         raise SystemExit(e)
     json.dump(obj, outfile, sort_keys=True, indent=4, separators=(',', ': '))
 
@@ -14,7 +14,7 @@ def _json(infile, outfile):
 def _xml(infile, outfile):
     try:
         obj = xml.parse(infile)
-    except Exception, e:
+    except Exception as e:
         raise SystemExit(e)
     pretty_xml_as_string = obj.toprettyxml()
     outfile.write(pretty_xml_as_string)
