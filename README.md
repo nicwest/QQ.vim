@@ -94,12 +94,12 @@ Body, sends everything after this as raw POST body.
 * `QAB` adds basic authentication to the current request
 * `QAO` adds oAuth2 to the current request
 
-**from a RESPONSE buffer
+**from a RESPONSE buffer**
 
 * `QQ` returns to the previous REQUEST buffer
 * `q` closes the buffer
 
-**from a HISTORY buffer
+**from a HISTORY buffer**
 
 * `<CR>` loads previous request into REQUEST buffer
 * `q` closes the buffer
