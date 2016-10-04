@@ -126,7 +126,7 @@ function! s:suite.setup_settings()
   call s:assert.equals(&l:foldcolumn, 0)
   call s:assert.equals(&l:foldlevel, 99)
   call s:assert.equals(&l:textwidth, 0)
-  call s:assert.equals(&l:buftype, 0)
+  call s:assert.equals(&l:buftype, 'nofile')
   call s:assert.equals(&l:bufhidden, 'hide')
   if v:version > 702
     call s:assert.equals(&l:relativenumber, 0)
