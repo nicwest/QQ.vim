@@ -17,6 +17,7 @@ I have moved to using https://github.com/nicwest/vim-http
 Here are some alternatives:
 
 https://github.com/baverman/vial-http
+
 https://github.com/diepm/vim-rest-console
 
 (if there are better alternatives, email me, create an issue, or make a PR)
