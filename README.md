@@ -61,6 +61,8 @@ displaying response's. Current option options are:
 * `pretty-print` passes response through a JSON pretty printer.
 * `follow` if this option is set to true the response will follow all redirects,
   otherwise will only return the first response
+* `insecure` if this option is set to true then it explicitly allows curl to
+  perform "insecure" SSL connections and transfers
 
 `FORM: :<field name>: <field value>`
 

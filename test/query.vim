@@ -39,6 +39,13 @@ function! s:suite.get_options_with_pretty_print()
   call s:assert.equals(l:options, ['pretty-print'])
 endfunction
 
+function! s:suite.get_options_with_insecure()
+  let l:test_query = {'OPTION': [['insecure', 'True']]}
+  let [l:args, l:options] = QQ#query#get_options(l:test_query)
+  call s:assert.equals(l:args, ' -k')
+  call s:assert.equals(l:options, ['insecure'])
+endfunction
+
 function! s:suite.get_options_no_options()
   let l:test_query = {'OPTIONS': []}
   let [l:args, l:options] = QQ#query#get_options(l:test_query)

@@ -23,6 +23,9 @@ function! QQ#query#get_options(query) abort
       let l:args .= ' -L'
     elseif name == 'pretty-print' && QQ#utils#truthy(value)
       call add(l:options, 'pretty-print')
+    elseif name == 'insecure' && QQ#utils#truthy(value)
+      call add(l:options, 'insecure')
+      let l:args .= ' -k'
     endif
   endfor
   return [l:args, l:options]
