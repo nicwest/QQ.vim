@@ -9,10 +9,6 @@ branches:
     - /^feat(ure)?-.*$/
     - /^(hot)?fix-.*$/
 
-install:
-  - sudo apt-get update -q
-  - sudo apt-get install vim-gtk
-
 before_script:
   - vim --version
   - python --version

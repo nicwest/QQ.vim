@@ -6,7 +6,7 @@ function! s:buflist ()
   return map(filter(filter(range(1, bufnr('$')), 'index(s:themis_buffers, v:val) < 0'), 'bufexists(v:val)'), 'bufname(v:val)')
 endfunction
 
-function! s:suite.after_each()
+function! s:suite.after_each() abort
   for buffer_name in s:buflist()
     if bufnr(buffer_name) > -1
       exe 'bw!' bufnr(buffer_name)

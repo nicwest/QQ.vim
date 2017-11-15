@@ -66,22 +66,24 @@ function! s:suite.open_creates_new_window_of_correct_size()
 endfunction
 
 function! s:suite.open_doesnt_recreate_buffer()
+  call s:assert.length_of(s:buflist(), 1)
   exe 'badd' s:B.collections
   call s:assert.true(bufexists(s:B.collections))
-  call s:assert.length_of(s:buflist(), 1)
+  call s:assert.length_of(s:buflist(), 2)
   call QQ#collection#open()
   call s:assert.true(bufexists(s:B.collections))
-  call s:assert.length_of(s:buflist(), 1)
+  call s:assert.length_of(s:buflist(), 2)
 endfunction
 
 function! s:suite.open_replaces_open_request_buffer()
+  call s:assert.length_of(s:buflist(), 1)
   exe 'badd' s:B.history
   exe 'sb' bufnr(s:B.history)
   call s:assert.not_equals(bufwinnr(s:B.history), -1)
   call QQ#collection#open()
   call s:assert.true(bufexists(s:B.history))
   call s:assert.true(bufexists(s:B.collections))
-  call s:assert.length_of(s:buflist(), 2)
+  call s:assert.length_of(s:buflist(), 3)
   call s:assert.equals(bufwinnr(s:B.history), -1)
   call s:assert.not_equals(bufwinnr(s:B.collections), -1)
 endfunction

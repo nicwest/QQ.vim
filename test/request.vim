@@ -2,7 +2,8 @@ let s:suite = themis#suite('request')
 let s:assert = themis#helper('assert')
 
 " Test Setup: {{{1
-let s:themis_buffers = filter(range(1, bufnr('$')), 'bufexists(v:val)')"{{{
+let s:themis_buffers = filter(range(1, bufnr('$')), 'bufexists(v:val)')
+"{{{
 function! s:buflist ()
   return map(filter(filter(range(1, bufnr('$')), 'index(s:themis_buffers, v:val) < 0'), 'bufexists(v:val)'), 'bufname(v:val)')
 endfunction
@@ -25,7 +26,8 @@ function! AddLines(lines)
   endfor
 endfunction
 
-let s:B = QQ#buffers#import()"}}}
+let s:B = QQ#buffers#import()
+"}}}
 let s:test_request = [
       \ "METHOD:\tGET",
       \ "URL:\thttps://www.googleapis.com/urlshortener/v1/url",
@@ -87,22 +89,24 @@ function! s:suite.open_creates_new_window_of_correct_size()
 endfunction
 
 function! s:suite.open_doesnt_recreate_buffer()
+  call s:assert.length_of(s:buflist(), 1)
   exe 'badd' s:B.request
   call s:assert.true(bufexists(s:B.request))
-  call s:assert.length_of(s:buflist(), 1)
+  call s:assert.length_of(s:buflist(), 2)
   call QQ#request#open()
   call s:assert.true(bufexists(s:B.request))
-  call s:assert.length_of(s:buflist(), 1)
+  call s:assert.length_of(s:buflist(), 2)
 endfunction
 
 function! s:suite.open_replaces_open_response_buffer()
+  call s:assert.length_of(s:buflist(), 1)
   exe 'badd' s:B.response
   exe 'sb' bufnr(s:B.response)
   call s:assert.not_equals(bufwinnr(s:B.response), -1)
   call QQ#request#open()
   call s:assert.true(bufexists(s:B.response))
   call s:assert.true(bufexists(s:B.request))
-  call s:assert.length_of(s:buflist(), 2)
+  call s:assert.length_of(s:buflist(), 3)
   call s:assert.equals(bufwinnr(s:B.response), -1)
   call s:assert.not_equals(bufwinnr(s:B.request), -1)
 endfunction
