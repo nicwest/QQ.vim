@@ -7,6 +7,22 @@ QQ is a wrapper over curl for making remote calls inside vim.
 
 [GIFS!](GIFS.md)
 
+NOTE
+----
+
+**This plugin is not being actively worked on by me.**
+
+I have moved to using https://github.com/nicwest/vim-http
+
+Here are some alternatives:
+
+https://github.com/baverman/vial-http
+https://github.com/diepm/vim-rest-console
+
+(if there are better alternatives, email me, create an issue, or make a PR)
+
+I will look into issues, and merge PR's if needed.
+
 Usage
 -----
 
@@ -15,7 +31,7 @@ the response is returned in a RESPONSE buffer. All executed requests are stored
 in default collection file (~/.QQ.default.collection by default), and can be
 accessed via the HISTORY buffer.
 
-###Request format###
+### Request format
 Requests are defined in the following formats:
 
 ```
@@ -23,7 +39,7 @@ Requests are defined in the following formats:
 <option name>: :<option key>: <option value>
 ```
 
-###Request options###
+### Request options
 These are the current accepted request options
 
 `URL: <url>`
@@ -77,7 +93,7 @@ File field, this file will be uploaded to the given URL with the specified name.
 
 Body, sends everything after this as raw POST body. 
 
-###Key binds###
+### Key binds
 
 **from a normal/any buffer**
 
@@ -111,7 +127,7 @@ Body, sends everything after this as raw POST body.
 * `<CR>` open collection under cursor and set as current
 * `q` closes the buffer
 
-###Example request###
+### Example request
 
 ```
 METHOD:	POST
