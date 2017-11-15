@@ -8,11 +8,17 @@ function! s:buflist ()
   return map(filter(filter(range(1, bufnr('$')), 'index(s:themis_buffers, v:val) < 0'), 'bufexists(v:val)'), 'bufname(v:val)')
 endfunction
 
+function! s:buflistnr ()
+  return filter(filter(range(1, bufnr('$')), 'index(s:themis_buffers, v:val) < 0'), 'bufexists(v:val)')
+endfunction
+
+function! s:suite.before_each()
+  let s:themis_buffers = filter(range(1, bufnr('$')), 'bufexists(v:val)')
+endfunction
+
 function! s:suite.after_each()
-  for buffer_name in s:buflist()
-    if bufnr(buffer_name) > -1
-      exe 'bw!' bufnr(buffer_name)
-    endif
+  for buffer_nr in s:buflistnr()
+    exe 'bw!' buffer_nr
   endfor
 endfunction
 
@@ -89,24 +95,24 @@ function! s:suite.open_creates_new_window_of_correct_size()
 endfunction
 
 function! s:suite.open_doesnt_recreate_buffer()
-  call s:assert.length_of(s:buflist(), 1)
+  call s:assert.length_of(s:buflist(), 0)
   exe 'badd' s:B.request
   call s:assert.true(bufexists(s:B.request))
-  call s:assert.length_of(s:buflist(), 2)
+  call s:assert.length_of(s:buflist(), 1)
   call QQ#request#open()
   call s:assert.true(bufexists(s:B.request))
-  call s:assert.length_of(s:buflist(), 2)
+  call s:assert.length_of(s:buflist(), 1)
 endfunction
 
 function! s:suite.open_replaces_open_response_buffer()
-  call s:assert.length_of(s:buflist(), 1)
+  call s:assert.length_of(s:buflist(), 0)
   exe 'badd' s:B.response
   exe 'sb' bufnr(s:B.response)
   call s:assert.not_equals(bufwinnr(s:B.response), -1)
   call QQ#request#open()
   call s:assert.true(bufexists(s:B.response))
   call s:assert.true(bufexists(s:B.request))
-  call s:assert.length_of(s:buflist(), 3)
+  call s:assert.length_of(s:buflist(), 2)
   call s:assert.equals(bufwinnr(s:B.response), -1)
   call s:assert.not_equals(bufwinnr(s:B.request), -1)
 endfunction

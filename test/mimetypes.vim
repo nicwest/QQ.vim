@@ -7,11 +7,17 @@ function! s:buflist ()
   return map(filter(filter(range(1, bufnr('$')), 'index(s:themis_buffers, v:val) < 0'), 'bufexists(v:val)'), 'bufname(v:val)')
 endfunction
 
+function! s:buflistnr ()
+  return filter(filter(range(1, bufnr('$')), 'index(s:themis_buffers, v:val) < 0'), 'bufexists(v:val)')
+endfunction
+
+function! s:suite.before_each()
+  let s:themis_buffers = filter(range(1, bufnr('$')), 'bufexists(v:val)')
+endfunction
+
 function! s:suite.after_each()
-  for buffer_name in s:buflist()
-    if bufnr(buffer_name) > -1
-      exe 'bw!' bufnr(buffer_name)
-    endif
+  for buffer_nr in s:buflistnr()
+    exe 'bw!' buffer_nr
   endfor
 endfunction
 
