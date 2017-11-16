@@ -347,6 +347,7 @@ endfunction
 "
 function! s:suite.maps_correct_keys()
   call QQ#collection#map_keys()
+  call s:assert.equals(maparg('<2-LeftMouse>', 'n'), ':call QQ#collection#to_history()<CR>')
   call s:assert.equals(maparg('<CR>', 'n'), ':call QQ#collection#to_history()<CR>')
   call s:assert.equals(maparg('q', 'n'), ':call QQ#utils#close_window()<CR>')
 endfunction

@@ -175,6 +175,7 @@ endfunction
 " Mapping: {{{1
 
 function! QQ#collection#map_keys () abort
+  nnoremap <buffer> <2-LeftMouse> :call QQ#collection#to_history()<CR>
   nnoremap <buffer> <CR> :call QQ#collection#to_history()<CR>
   nnoremap <buffer> q :call QQ#utils#close_window()<CR>
 endfunction
