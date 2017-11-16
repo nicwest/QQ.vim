@@ -32,7 +32,9 @@ function! AddLines(lines)
 endfunction
 
 function! CallWithInput(func, input)
-  exe 'normal :call '.join([a:func.'()'] + a:input, '').''
+  exe 'normal :call '.join([a:func.'()'] + a:input, '
+').'
+'
 endfunction
 
 let s:curl_str_with_time = 'curl -si -w ''\r\n%{time_namelookup}\r\n%{time_connect}\r\n%{time_appconnect}\r\n%{time_pretransfer}\r\n%{time_redirect}\r\n%{time_starttransfer}\r\n%{time_total}'''
@@ -216,6 +218,7 @@ endfunction
 function! s:suite.maps_correct_keys()
   exe 'new' s:B.history
   call QQ#history#map_keys()
+  call s:assert.equals(maparg('<2-LeftMouse>', 'n'), ':call QQ#history#to_request()<CR>')
   call s:assert.equals(maparg('<CR>', 'n'), ':call QQ#history#to_request()<CR>')
   call s:assert.equals(maparg('q', 'n'), ':call QQ#utils#close_window()<CR>')
 endfunction
