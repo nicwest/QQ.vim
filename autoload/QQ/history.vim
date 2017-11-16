@@ -123,7 +123,7 @@ endfunction
 
 " Mapping: {{{1
 function! QQ#history#map_keys () abort
-  nnoremap <2-LeftMouse> :call QQ#history#to_request()<CR>
+  nnoremap <buffer> <2-LeftMouse> :call QQ#history#to_request()<CR>
   nnoremap <buffer> <CR> :call QQ#history#to_request()<CR>
   nnoremap <buffer> q :call QQ#utils#close_window()<CR>
 endfunction
