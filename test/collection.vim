@@ -32,9 +32,7 @@ function! AddLines(lines)
 endfunction
 
 function! CallWithInput(func, input)
-  exe 'normal :call '.join([a:func.'()'] + a:input, '
-').'
-'
+  exe 'normal :call '.join([a:func.'()'] + a:input, '').''
 endfunction
 
 let s:test_collections = [

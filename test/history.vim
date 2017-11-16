@@ -32,9 +32,7 @@ function! AddLines(lines)
 endfunction
 
 function! CallWithInput(func, input)
-  exe 'normal :call '.join([a:func.'()'] + a:input, '
-').'
-'
+  exe 'normal :call '.join([a:func.'()'] + a:input, '').''
 endfunction
 
 let s:curl_str_with_time = 'curl -si -w ''\r\n%{time_namelookup}\r\n%{time_connect}\r\n%{time_appconnect}\r\n%{time_pretransfer}\r\n%{time_redirect}\r\n%{time_starttransfer}\r\n%{time_total}'''
